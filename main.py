@@ -39,7 +39,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-CHECK_INTERVAL_HOURS = float(os.getenv("CHECK_INTERVAL_HOURS", "6"))
+CHECK_INTERVAL_HOURS = float(os.getenv("CHECK_INTERVAL_HOURS", "1"))
 
 
 def run_once() -> None:
@@ -56,10 +56,10 @@ def run_once() -> None:
         log.info("새로 게시할 글이 없습니다.")
         return
 
-    log.info(f"새 글 {len(new_posts)}개 발견")
+    log.info(f"미게시 글 {len(new_posts)}개 중 1개 업로드")
 
-    # 가장 최신 글부터 처리 (API 응답은 이미 최신순)
-    for raw in new_posts:
+    # 가장 오래된 미게시 글 1개만 처리
+    for raw in new_posts[-1:]:
         post = wp.parse_post(raw)
         log.info(f"처리 중: [{post['id']}] {post['title']}")
 
@@ -88,13 +88,11 @@ def run_once() -> None:
         except Exception as e:
             log.error(f"인스타그램 게시 실패: {e}")
 
-        # API 레이트 리밋 방지 (게시 간 5초 대기)
-        time.sleep(5)
 
 
 def run_schedule() -> None:
     """주기적으로 run_once()를 실행합니다."""
-    log.info(f"스케줄러 시작: {CHECK_INTERVAL_HOURS}시간마다 확인")
+    log.info(f"스케줄러 시작: {CHECK_INTERVAL_HOURS}시간마다 1개 업로드")
     run_once()  # 시작 즉시 한 번 실행
     schedule.every(CHECK_INTERVAL_HOURS).hours.do(run_once)
     while True:
