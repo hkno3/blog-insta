@@ -41,7 +41,7 @@ def create_image_container(image_url: str, caption: str) -> str:
     data = _api(
         "post",
         f"{account_id}/media",
-        json={
+        data={
             "image_url": image_url,
             "caption": caption,
         },
@@ -60,7 +60,7 @@ def publish_container(creation_id: str) -> str:
     data = _api(
         "post",
         f"{account_id}/media_publish",
-        json={"creation_id": creation_id},
+        data={"creation_id": creation_id},
     )
     return data["id"]
 
