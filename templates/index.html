@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordPress → Instagram 자동 게시</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+  /* 헤더 */
+  header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 32px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header .subtitle { font-size: .85rem; opacity: .8; }
+
+  /* 레이아웃 */
+  .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width:768px) { .grid { grid-template-columns: 1fr; } }
+
+  /* 카드 */
+  .card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+  .card-header h2 { font-size: 1rem; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* 버튼 */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border: none; border-radius: 8px; font-size: .875rem; font-weight: 600; cursor: pointer; transition: all .15s; text-decoration: none; }
+  .btn-primary { background: #667eea; color: white; }
+  .btn-primary:hover { background: #5a6fd8; }
+  .btn-success { background: #22c55e; color: white; }
+  .btn-success:hover { background: #16a34a; }
+  .btn-outline { background: white; color: #667eea; border: 2px solid #667eea; }
+  .btn-outline:hover { background: #f5f3ff; }
+  .btn-sm { padding: 5px 12px; font-size: .8rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* 배지 */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-blue { background: #dbeafe; color: #2563eb; }
+  .badge-gray { background: #f3f4f6; color: #6b7280; }
+
+  /* 상태 표시 */
+  .status-bar { background: #1e1b4b; color: #a5b4fc; border-radius: 8px; padding: 14px 16px; font-family: monospace; font-size: .8rem; min-height: 120px; max-height: 220px; overflow-y: auto; line-height: 1.6; white-space: pre-wrap; }
+  .status-bar:empty::before { content: '로그가 여기 표시됩니다...'; opacity: .5; }
+
+  /* 폼 */
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: .8rem; font-weight: 600; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+  .form-group input { width: 100%; padding: 9px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: .9rem; transition: border-color .15s; }
+  .form-group input:focus { outline: none; border-color: #667eea; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:600px) { .form-row { grid-template-columns: 1fr; } }
+
+  /* 글 목록 */
+  .post-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+  .post-item:last-child { border-bottom: none; }
+  .post-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; background: #f3f4f6; flex-shrink: 0; }
+  .post-thumb-placeholder { width: 60px; height: 60px; border-radius: 8px; background: #f3f4f6; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+  .post-info { flex: 1; min-width: 0; }
+  .post-title { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .post-date { font-size: .75rem; color: #9ca3af; margin-top: 3px; }
+  .post-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  /* 게시 이력 */
+  .history-item { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .history-item:last-child { border-bottom: none; }
+  .history-title { font-size: .875rem; font-weight: 600; }
+  .history-meta { font-size: .75rem; color: #9ca3af; margin-top: 2px; }
+
+  /* 연결 테스트 */
+  .conn-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+  .conn-item:last-child { border-bottom: none; }
+  .conn-name { font-size: .9rem; font-weight: 600; }
+  .conn-msg { font-size: .8rem; color: #6b7280; }
+
+  /* 탭 */
+  .tabs { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 10px; margin-bottom: 20px; }
+  .tab { flex: 1; text-align: center; padding: 8px; border-radius: 8px; cursor: pointer; font-size: .875rem; font-weight: 500; border: none; background: none; color: #6b7280; transition: all .15s; }
+  .tab.active { background: white; color: #667eea; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 알림 */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; color: white; font-size: .875rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 9999; animation: slideUp .3s ease; }
+  .toast-success { background: #22c55e; }
+  .toast-error { background: #ef4444; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .full-width { grid-column: 1 / -1; }
+  .flex-gap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .mt-12 { margin-top: 12px; }
+  .empty { text-align: center; padding: 40px; color: #9ca3af; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📸 WordPress → Instagram 자동 게시</h1>
+    <div class="subtitle">블로그 새 글을 AI가 요약해서 인스타그램에 자동 업로드</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">대시보드</button>
+    <button class="tab" onclick="switchTab('posts')">블로그 글</button>
+    <button class="tab" onclick="switchTab('history')">게시 이력</button>
+    <button class="tab" onclick="switchTab('settings')">설정</button>
+  </div>
+
+  <!-- ═══════════════ 대시보드 탭 ═══════════════ -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="grid">
+
+      <!-- 실행 제어 -->
+      <div class="card">
+        <div class="card-header">
+          <h2>실행 제어</h2>
+          <span id="run-badge" class="badge badge-gray">대기 중</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:.875rem;color:#6b7280;margin-bottom:16px;">
+            새 블로그 글을 확인하고 대표 이미지가 있는 글을 인스타그램에 게시합니다.
+          </p>
+          <div class="flex-gap">
+            <button class="btn btn-success" id="btn-run-now" onclick="runNow()">
+              ▶ 지금 실행
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="testConnections()">
+              연결 테스트
+            </button>
+          </div>
+          <div id="last-run" style="font-size:.75rem;color:#9ca3af;margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <!-- 연결 상태 -->
+      <div class="card">
+        <div class="card-header">
+          <h2>연결 상태</h2>
+          <button class="btn btn-sm btn-outline" onclick="testConnections()">새로고침</button>
+        </div>
+        <div class="card-body" id="conn-status">
+          <div class="empty">연결 테스트 버튼을 눌러주세요</div>
+        </div>
+      </div>
+
+      <!-- 로그 -->
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>실행 로그</h2>
+          <button class="btn btn-sm btn-outline" onclick="clearLog()">지우기</button>
+        </div>
+        <div class="card-body">
+          <div class="status-bar" id="log-box"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ 블로그 글 탭 ═══════════════ -->
+  <div id="tab-posts" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>최근 블로그 글</h2>
+        <button class="btn btn-sm btn-outline" onclick="loadPosts()">새로고침</button>
+      </div>
+      <div class="card-body" id="posts-list">
+        <div class="empty">설정 후 새로고침을 눌러주세요</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 게시 이력 탭 ═══════════════ -->
+  <div id="tab-history" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>인스타그램 게시 이력</h2>
+        <span id="history-count" class="badge badge-blue">0건</span>
+      </div>
+      <div class="card-body" id="history-list">
+        <div class="empty">아직 게시된 글이 없습니다</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 설정 탭 ═══════════════ -->
+  <div id="tab-settings" class="tab-content">
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-header"><h2>WordPress 설정</h2></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>블로그 URL</label>
+            <input type="url" id="WP_SITE_URL" placeholder="https://your-blog.com">
+          </div>
+          <div style="font-size:.8rem;color:#9ca3af;margin-bottom:16px;">
+            ※ 공개 글은 인증 불필요. 비공개 글도 가져오려면 아래 입력
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>WP 사용자명 (선택)</label>
+              <input type="text" id="WP_USERNAME" placeholder="admin">
+            </div>
+            <div class="form-group">
+              <label>Application Password (선택)</label>
+              <input type="password" id="WP_APP_PASSWORD" placeholder="xxxx xxxx xxxx">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Instagram / Meta 설정</h2></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Instagram Business Account ID</label>
+            <input type="text" id="INSTAGRAM_BUSINESS_ACCOUNT_ID" placeholder="123456789012345">
+          </div>
+          <div class="form-group">
+            <label>Long-lived Access Token</label>
+            <input type="password" id="INSTAGRAM_ACCESS_TOKEN" placeholder="EAAxxxxxxxx...">
+          </div>
+          <div style="font-size:.78rem;color:#9ca3af;">
+            👉 <a href="https://developers.facebook.com/tools/explorer/" target="_blank" style="color:#667eea;">Meta Graph API Explorer</a>에서 발급 (60일 유효)
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>Claude AI 설정</h2></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Anthropic API Key</label>
+            <input type="password" id="ANTHROPIC_API_KEY" placeholder="sk-ant-...">
+          </div>
+          <div style="font-size:.78rem;color:#9ca3af;">
+            👉 <a href="https://console.anthropic.com" target="_blank" style="color:#667eea;">console.anthropic.com</a>에서 발급
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2>게시 설정</h2></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>확인 주기 (시간)</label>
+              <input type="number" id="CHECK_INTERVAL_HOURS" placeholder="6" min="1">
+            </div>
+            <div class="form-group">
+              <label>캡션 최대 글자수</label>
+              <input type="number" id="CAPTION_MAX_LENGTH" placeholder="2000" max="2200">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>해시태그</label>
+            <input type="text" id="HASHTAGS" placeholder="#블로그 #정보공유 #일상">
+          </div>
+          <div class="form-group">
+            <label>블로그 링크 안내 문구</label>
+            <input type="text" id="BLOG_LINK_TEXT" placeholder="🔗 블로그 링크는 프로필 바이오에!">
+          </div>
+        </div>
+      </div>
+
+      <div class="card full-width">
+        <div class="card-body" style="display:flex;justify-content:flex-end;gap:12px;">
+          <button class="btn btn-outline" onclick="loadSettings()">초기화</button>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 설정 저장</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── 탭 전환 ───
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'posts') loadPosts();
+  if (name === 'history') loadHistory();
+  if (name === 'settings') loadSettings();
+}
+
+// ─── 토스트 알림 ───
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ─── 로그 폴링 ───
+let logInterval;
+function startLogPolling() {
+  if (logInterval) return;
+  logInterval = setInterval(pollStatus, 1500);
+}
+
+async function pollStatus() {
+  const res = await fetch('/api/status');
+  const data = await res.json();
+  const box = document.getElementById('log-box');
+  box.textContent = data.log.join('\n');
+  box.scrollTop = box.scrollHeight;
+
+  const badge = document.getElementById('run-badge');
+  const btn = document.getElementById('btn-run-now');
+  if (data.running) {
+    badge.className = 'badge badge-blue';
+    badge.textContent = '실행 중...';
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> 실행 중';
+  } else {
+    badge.className = 'badge badge-gray';
+    badge.textContent = '대기 중';
+    btn.disabled = false;
+    btn.innerHTML = '▶ 지금 실행';
+    if (data.last_run) {
+      document.getElementById('last-run').textContent = '마지막 실행: ' + data.last_run.replace('T', ' ').slice(0, 19);
+    }
+  }
+}
+
+// ─── 지금 실행 ───
+async function runNow() {
+  const res = await fetch('/api/post/now', { method: 'POST' });
+  const data = await res.json();
+  if (data.ok) {
+    toast('게시 작업을 시작했습니다!');
+    startLogPolling();
+  } else {
+    toast(data.error || '오류 발생', 'error');
+  }
+}
+
+function clearLog() {
+  document.getElementById('log-box').textContent = '';
+}
+
+// ─── 연결 테스트 ───
+async function testConnections() {
+  const box = document.getElementById('conn-status');
+  box.innerHTML = '<div class="empty"><div class="spinner" style="margin:auto;"></div></div>';
+  try {
+    const res = await fetch('/api/test');
+    const data = await res.json();
+    const names = { wordpress: 'WordPress', instagram: 'Instagram', claude: 'Claude AI' };
+    box.innerHTML = Object.entries(data).map(([k, v]) => `
+      <div class="conn-item">
+        <div>
+          <div class="conn-name">${names[k] || k}</div>
+          <div class="conn-msg">${v.msg}</div>
+        </div>
+        <span class="badge ${v.ok ? 'badge-green' : 'badge-red'}">${v.ok ? '✓ 정상' : '✗ 오류'}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    box.innerHTML = '<div class="empty">테스트 실패</div>';
+  }
+}
+
+// ─── 블로그 글 목록 ───
+async function loadPosts() {
+  const box = document.getElementById('posts-list');
+  box.innerHTML = '<div class="empty"><div class="spinner" style="margin:auto;"></div></div>';
+
+  // 게시 이력 먼저 로드
+  let publishedIds = new Set();
+  try {
+    const hr = await fetch('/api/published');
+    const hd = await hr.json();
+    publishedIds = new Set(hd.items.map(i => String(i.wp_id)));
+  } catch {}
+
+  try {
+    const res = await fetch('/api/wp/posts');
+    const data = await res.json();
+    if (data.error) { box.innerHTML = `<div class="empty">오류: ${data.error}</div>`; return; }
+    if (!data.posts.length) { box.innerHTML = '<div class="empty">글이 없습니다</div>'; return; }
+
+    box.innerHTML = data.posts.map(p => {
+      const published = publishedIds.has(String(p.id));
+      const thumb = p.image_url
+        ? `<img src="${p.image_url}" class="post-thumb" onerror="this.style.display='none'">`
+        : `<div class="post-thumb-placeholder">📝</div>`;
+      const date = p.date ? p.date.replace('T', ' ').slice(0, 16) : '';
+      const noImg = !p.image_url;
+      return `
+        <div class="post-item">
+          ${thumb}
+          <div class="post-info">
+            <div class="post-title">${p.title}</div>
+            <div class="post-date">${date}</div>
+            ${noImg ? '<div style="font-size:.72rem;color:#ef4444;margin-top:3px;">⚠ 대표 이미지 없음</div>' : ''}
+          </div>
+          <div class="post-actions">
+            ${published
+              ? '<span class="badge badge-green">게시됨</span>'
+              : `<button class="btn btn-sm btn-primary" onclick='postSingle(${p.id}, ${JSON.stringify(p.image_url || '')}, ${JSON.stringify(p.title)})' ${noImg ? 'disabled title="대표 이미지를 설정해주세요"' : ''}>게시</button>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    box.innerHTML = `<div class="empty">불러오기 실패: ${e.message}</div>`;
+  }
+}
+
+async function postSingle(id, imageUrl, title) {
+  if (!confirm(`"${title}" 글을 인스타그램에 게시할까요?`)) return;
+  const res = await fetch('/api/post/single', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ wp_post_id: id, image_url: imageUrl, title }),
+  });
+  const data = await res.json();
+  if (data.ok) {
+    toast('게시 시작! 대시보드에서 로그를 확인하세요.');
+    switchTab('dashboard');
+    startLogPolling();
+  } else {
+    toast(data.error || '오류 발생', 'error');
+  }
+}
+
+// ─── 게시 이력 ───
+async function loadHistory() {
+  const box = document.getElementById('history-list');
+  box.innerHTML = '<div class="empty"><div class="spinner" style="margin:auto;"></div></div>';
+  try {
+    const res = await fetch('/api/published');
+    const data = await res.json();
+    document.getElementById('history-count').textContent = data.total + '건';
+    if (!data.items.length) { box.innerHTML = '<div class="empty">아직 게시된 글이 없습니다</div>'; return; }
+    box.innerHTML = data.items.map(i => `
+      <div class="history-item">
+        <div class="history-title">${i.title}</div>
+        <div class="history-meta">게시일: ${i.published_at.replace('T', ' ').slice(0, 19)} · WP ID: ${i.wp_id} · IG: ${i.instagram_media_id}</div>
+      </div>
+    `).join('');
+  } catch (e) {
+    box.innerHTML = `<div class="empty">불러오기 실패</div>`;
+  }
+}
+
+// ─── 설정 ───
+const SETTING_KEYS = ['WP_SITE_URL','WP_USERNAME','WP_APP_PASSWORD','INSTAGRAM_BUSINESS_ACCOUNT_ID','INSTAGRAM_ACCESS_TOKEN','ANTHROPIC_API_KEY','CHECK_INTERVAL_HOURS','CAPTION_MAX_LENGTH','HASHTAGS','BLOG_LINK_TEXT'];
+
+async function loadSettings() {
+  const res = await fetch('/api/settings');
+  const data = await res.json();
+  SETTING_KEYS.forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = data[k] || '';
+  });
+}
+
+async function saveSettings() {
+  const payload = {};
+  SETTING_KEYS.forEach(k => {
+    const el = document.getElementById(k);
+    if (el && el.value) payload[k] = el.value;
+  });
+  const res = await fetch('/api/settings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (data.ok) toast('설정이 저장되었습니다!');
+  else toast('저장 실패', 'error');
+}
+
+// ─── 초기화 ───
+pollStatus();
+startLogPolling();
+</script>
+</body>
+</html>

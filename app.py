@@ -1,0 +1,280 @@
+"""
+WordPress → Instagram 자동 게시 웹 애플리케이션
+실행: python app.py  →  브라우저에서 http://localhost:5000 접속
+"""
+import json
+import os
+import threading
+from datetime import datetime
+
+from dotenv import load_dotenv, dotenv_values, set_key
+from flask import Flask, jsonify, render_template, request
+
+load_dotenv()
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
+
+# 백그라운드 작업 상태
+_job_status = {"running": False, "log": [], "last_run": None}
+_lock = threading.Lock()
+
+
+def _log(msg: str):
+    ts = datetime.now().strftime("%H:%M:%S")
+    line = f"[{ts}] {msg}"
+    with _lock:
+        _job_status["log"].append(line)
+        if len(_job_status["log"]) > 200:
+            _job_status["log"] = _job_status["log"][-200:]
+    print(line)
+
+
+# ───────────────────────────── 페이지 라우트 ──────────────────────────────
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+# ───────────────────────────── API: 설정 ─────────────────────────────────
+
+@app.route("/api/settings", methods=["GET"])
+def get_settings():
+    """현재 .env 값 반환 (토큰/패스워드는 마스킹)"""
+    if not os.path.exists(ENV_FILE):
+        return jsonify({})
+    values = dotenv_values(ENV_FILE)
+    masked = {}
+    SENSITIVE = {"INSTAGRAM_ACCESS_TOKEN", "ANTHROPIC_API_KEY", "WP_APP_PASSWORD", "META_APP_SECRET"}
+    for k, v in values.items():
+        if k in SENSITIVE and v:
+            masked[k] = v[:6] + "****" + v[-4:] if len(v) > 10 else "****"
+        else:
+            masked[k] = v
+    return jsonify(masked)
+
+
+@app.route("/api/settings", methods=["POST"])
+def save_settings():
+    """설정을 .env 파일에 저장"""
+    data = request.json or {}
+    # .env 없으면 example에서 복사
+    if not os.path.exists(ENV_FILE):
+        example = os.path.join(os.path.dirname(__file__), ".env.example")
+        if os.path.exists(example):
+            import shutil
+            shutil.copy(example, ENV_FILE)
+        else:
+            open(ENV_FILE, "w").close()
+
+    for key, value in data.items():
+        if value and "****" not in str(value):  # 마스킹된 값은 덮어쓰지 않음
+            set_key(ENV_FILE, key, str(value))
+
+    load_dotenv(override=True)
+    return jsonify({"ok": True})
+
+
+# ───────────────────────────── API: WordPress ────────────────────────────
+
+@app.route("/api/wp/posts")
+def get_wp_posts():
+    """WordPress 최근 글 목록"""
+    try:
+        import wordpress_client as wp
+        raws = wp.get_recent_posts(count=20)
+        posts = [wp.parse_post(r) for r in raws]
+        # 이미지 URL 포함
+        for i, r in enumerate(raws):
+            posts[i]["image_url"] = wp.get_featured_image_url(r)
+        return jsonify({"posts": posts})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ───────────────────────────── API: 게시 이력 ────────────────────────────
+
+@app.route("/api/published")
+def get_published():
+    import tracker
+    data = tracker.get_all_published()
+    items = [
+        {"wp_id": k, **v}
+        for k, v in sorted(data.items(), key=lambda x: x[1]["published_at"], reverse=True)
+    ]
+    return jsonify({"items": items, "total": len(items)})
+
+
+# ───────────────────────────── API: 수동 게시 ────────────────────────────
+
+@app.route("/api/post/now", methods=["POST"])
+def post_now():
+    """새 글을 지금 바로 확인하고 게시"""
+    if _job_status["running"]:
+        return jsonify({"error": "이미 실행 중입니다."}), 409
+
+    def _run():
+        with _lock:
+            _job_status["running"] = True
+            _job_status["log"] = []
+
+        load_dotenv(override=True)
+        try:
+            import wordpress_client as wp
+            import instagram_client as ig
+            import tracker
+            from summarizer import generate_instagram_caption
+
+            _log("워드프레스 최근 글 확인 중...")
+            raws = wp.get_recent_posts(count=10)
+            new_posts = [p for p in raws if not tracker.is_published(p["id"])]
+
+            if not new_posts:
+                _log("새로 게시할 글이 없습니다.")
+                return
+
+            _log(f"새 글 {len(new_posts)}개 발견")
+            for raw in new_posts:
+                post = wp.parse_post(raw)
+                _log(f"처리 중: {post['title']}")
+
+                image_url = wp.get_featured_image_url(raw)
+                if not image_url:
+                    _log(f"  ⚠ 대표 이미지 없음 - 건너뜀")
+                    continue
+
+                _log("  Claude AI 캡션 생성 중...")
+                caption = generate_instagram_caption(post)
+                _log(f"  캡션 생성 완료 ({len(caption)}자)")
+
+                _log("  Instagram에 게시 중...")
+                media_id = ig.post_to_instagram(image_url, caption)
+                tracker.mark_published(post["id"], media_id, post["title"])
+                _log(f"  ✅ 게시 완료! media_id={media_id}")
+
+            _log("작업 완료")
+        except Exception as e:
+            _log(f"❌ 오류 발생: {e}")
+        finally:
+            with _lock:
+                _job_status["running"] = False
+                _job_status["last_run"] = datetime.now().isoformat()
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return jsonify({"ok": True, "message": "게시 작업을 시작했습니다."})
+
+
+@app.route("/api/post/single", methods=["POST"])
+def post_single():
+    """특정 글 한 개를 수동으로 게시"""
+    data = request.json or {}
+    wp_post_id = data.get("wp_post_id")
+    image_url = data.get("image_url")
+    title = data.get("title", "")
+
+    if not wp_post_id or not image_url:
+        return jsonify({"error": "wp_post_id와 image_url이 필요합니다."}), 400
+
+    if _job_status["running"]:
+        return jsonify({"error": "이미 실행 중입니다."}), 409
+
+    def _run():
+        with _lock:
+            _job_status["running"] = True
+            _job_status["log"] = []
+
+        load_dotenv(override=True)
+        try:
+            import wordpress_client as wp
+            import instagram_client as ig
+            import tracker
+            from summarizer import generate_instagram_caption
+
+            _log(f"글 가져오는 중: ID={wp_post_id}")
+            raws = wp.get_recent_posts(count=50)
+            raw = next((r for r in raws if r["id"] == int(wp_post_id)), None)
+            if not raw:
+                _log("❌ 해당 글을 찾을 수 없습니다.")
+                return
+
+            post = wp.parse_post(raw)
+            _log("Claude AI 캡션 생성 중...")
+            caption = generate_instagram_caption(post)
+            _log(f"캡션 생성 완료 ({len(caption)}자)")
+
+            _log("Instagram에 게시 중...")
+            media_id = ig.post_to_instagram(image_url, caption)
+            tracker.mark_published(post["id"], media_id, post["title"])
+            _log(f"✅ 게시 완료! media_id={media_id}")
+        except Exception as e:
+            _log(f"❌ 오류: {e}")
+        finally:
+            with _lock:
+                _job_status["running"] = False
+                _job_status["last_run"] = datetime.now().isoformat()
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return jsonify({"ok": True})
+
+
+# ───────────────────────────── API: 로그/상태 ────────────────────────────
+
+@app.route("/api/status")
+def get_status():
+    with _lock:
+        return jsonify({
+            "running": _job_status["running"],
+            "last_run": _job_status["last_run"],
+            "log": _job_status["log"][-50:],
+        })
+
+
+@app.route("/api/test")
+def test_connections():
+    """API 연결 상태 확인"""
+    load_dotenv(override=True)
+    results = {}
+
+    # WordPress
+    try:
+        import wordpress_client as wp
+        posts = wp.get_recent_posts(count=1)
+        results["wordpress"] = {"ok": True, "msg": f"연결 성공 ({len(posts)}개 글 확인)"}
+    except Exception as e:
+        results["wordpress"] = {"ok": False, "msg": str(e)}
+
+    # Instagram
+    try:
+        import instagram_client as ig
+        info = ig.get_account_info()
+        results["instagram"] = {"ok": True, "msg": f"연결 성공 (@{info.get('username', '?')})"}
+    except Exception as e:
+        results["instagram"] = {"ok": False, "msg": str(e)}
+
+    # Claude API
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=5,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        results["claude"] = {"ok": True, "msg": "연결 성공"}
+    except Exception as e:
+        results["claude"] = {"ok": False, "msg": str(e)}
+
+    return jsonify(results)
+
+
+if __name__ == "__main__":
+    print("=" * 50)
+    print("  WordPress → Instagram 자동 게시")
+    print("  브라우저에서 http://localhost:5000 접속")
+    print("=" * 50)
+    app.run(debug=False, host="0.0.0.0", port=5000)
