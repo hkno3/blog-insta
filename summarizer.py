@@ -1,8 +1,8 @@
 """
-Claude API를 사용해 블로그 글을 인스타그램용 캡션으로 변환합니다.
+Gemini API를 사용해 블로그 글을 인스타그램용 캡션으로 변환합니다.
 """
 import os
-import anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,14 +11,15 @@ CAPTION_MAX_LENGTH = int(os.getenv("CAPTION_MAX_LENGTH", "2000"))
 HASHTAGS = os.getenv("HASHTAGS", "#블로그 #정보공유")
 BLOG_LINK_TEXT = os.getenv("BLOG_LINK_TEXT", "🔗 블로그 링크는 프로필 바이오에!")
 
-_client = None
+_model = None
 
 
-def _get_client() -> anthropic.Anthropic:
-    global _client
-    if _client is None:
-        _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return _client
+def _get_model():
+    global _model
+    if _model is None:
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        _model = genai.GenerativeModel("gemini-2.5-flash")
+    return _model
 
 
 def generate_instagram_caption(post: dict) -> str:
@@ -59,13 +60,8 @@ def generate_instagram_caption(post: dict) -> str:
 
 캡션 텍스트만 출력하세요. 부가 설명 없이."""
 
-    message = _get_client().messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    body = message.content[0].text.strip()
+    response = _get_model().generate_content(prompt)
+    body = response.text.strip()
 
     # 글자수 초과 시 자르기
     if len(body) > body_max:

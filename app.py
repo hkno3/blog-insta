@@ -48,7 +48,7 @@ def get_settings():
         return jsonify({})
     values = dotenv_values(ENV_FILE)
     masked = {}
-    SENSITIVE = {"INSTAGRAM_ACCESS_TOKEN", "ANTHROPIC_API_KEY", "WP_APP_PASSWORD", "META_APP_SECRET"}
+    SENSITIVE = {"INSTAGRAM_ACCESS_TOKEN", "GEMINI_API_KEY", "WP_APP_PASSWORD", "META_APP_SECRET"}
     for k, v in values.items():
         if k in SENSITIVE and v:
             masked[k] = v[:6] + "****" + v[-4:] if len(v) > 10 else "****"
@@ -256,18 +256,15 @@ def test_connections():
     except Exception as e:
         results["instagram"] = {"ok": False, "msg": str(e)}
 
-    # Claude API
+    # Gemini API
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=5,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-        results["claude"] = {"ok": True, "msg": "연결 성공"}
+        import google.generativeai as genai
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        model.generate_content("hi")
+        results["gemini"] = {"ok": True, "msg": "연결 성공 (gemini-2.5-flash)"}
     except Exception as e:
-        results["claude"] = {"ok": False, "msg": str(e)}
+        results["gemini"] = {"ok": False, "msg": str(e)}
 
     return jsonify(results)
 
