@@ -18,7 +18,7 @@ GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
 
 
 def _api(method: str, endpoint: str, **kwargs) -> dict:
-    access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "")
+    access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "").strip()
     url = f"{GRAPH_API_BASE}/{endpoint}"
     params = kwargs.pop("params", {})
     params["access_token"] = access_token
@@ -37,7 +37,7 @@ def create_image_container(image_url: str, caption: str) -> str:
     Returns:
         creation_id (게시에 사용할 컨테이너 ID)
     """
-    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "").strip()
     data = _api(
         "post",
         f"{account_id}/media",
@@ -56,7 +56,7 @@ def publish_container(creation_id: str) -> str:
     Returns:
         게시된 미디어 ID
     """
-    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "").strip()
     data = _api(
         "post",
         f"{account_id}/media_publish",
@@ -83,7 +83,7 @@ def post_to_instagram(image_url: str, caption: str) -> str:
 
 def get_account_info() -> dict:
     """계정 정보를 가져와 연결 상태를 확인합니다."""
-    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "").strip()
     return _api("get", account_id, params={"fields": "id,username,name"})
 
 
