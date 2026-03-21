@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
+GRAPH_API_BASE = "https://graph.instagram.com/v21.0"
 
 
 def _api(method: str, endpoint: str, **kwargs) -> dict:

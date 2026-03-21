@@ -249,17 +249,17 @@ def debug_instagram():
         "account_id": account_id,
     }
 
-    # /me 엔드포인트로 토큰 자체 유효성 확인
+    # graph.instagram.com /me 엔드포인트로 토큰 유효성 확인
     me_resp = req.get(
-        "https://graph.facebook.com/v21.0/me",
-        params={"access_token": token, "fields": "id,name"},
+        "https://graph.instagram.com/v21.0/me",
+        params={"access_token": token, "fields": "id,username,name"},
         timeout=10,
     )
     info["me_raw"] = me_resp.json()
 
     # account_id로 Instagram 계정 조회
     ig_resp = req.get(
-        f"https://graph.facebook.com/v21.0/{account_id}",
+        f"https://graph.instagram.com/v21.0/{account_id}",
         params={"access_token": token, "fields": "id,username,name"},
         timeout=10,
     )
