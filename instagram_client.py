@@ -1,0 +1,103 @@
+"""
+Instagram Graph API 클라이언트
+Meta Business Suite의 Instagram Graph API를 사용합니다.
+
+사전 준비:
+1. Instagram 계정을 비즈니스/크리에이터 계정으로 전환
+2. Facebook 페이지와 연결
+3. Meta Developer App 생성 후 instagram_basic, instagram_content_publish 권한 요청
+4. Long-lived Access Token 발급 (60일 유효, 갱신 가능)
+"""
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+INSTAGRAM_ACCOUNT_ID = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN", "")
+GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
+
+
+def _api(method: str, endpoint: str, **kwargs) -> dict:
+    url = f"{GRAPH_API_BASE}/{endpoint}"
+    params = kwargs.pop("params", {})
+    params["access_token"] = ACCESS_TOKEN
+    resp = getattr(requests, method)(url, params=params, timeout=30, **kwargs)
+    data = resp.json()
+    if "error" in data:
+        raise RuntimeError(f"Instagram API 오류: {data['error']['message']}")
+    return data
+
+
+def create_image_container(image_url: str, caption: str) -> str:
+    """
+    이미지 미디어 컨테이너를 생성합니다.
+    이미지는 공개적으로 접근 가능한 URL이어야 합니다.
+
+    Returns:
+        creation_id (게시에 사용할 컨테이너 ID)
+    """
+    data = _api(
+        "post",
+        f"{INSTAGRAM_ACCOUNT_ID}/media",
+        json={
+            "image_url": image_url,
+            "caption": caption,
+        },
+    )
+    return data["id"]
+
+
+def publish_container(creation_id: str) -> str:
+    """
+    생성된 컨테이너를 실제로 게시합니다.
+
+    Returns:
+        게시된 미디어 ID
+    """
+    data = _api(
+        "post",
+        f"{INSTAGRAM_ACCOUNT_ID}/media_publish",
+        json={"creation_id": creation_id},
+    )
+    return data["id"]
+
+
+def post_to_instagram(image_url: str, caption: str) -> str:
+    """
+    이미지와 캡션으로 인스타그램에 게시합니다.
+
+    Args:
+        image_url: 공개 접근 가능한 이미지 URL (워드프레스 미디어 URL)
+        caption: 인스타그램 캡션 텍스트
+
+    Returns:
+        게시된 미디어 ID
+    """
+    creation_id = create_image_container(image_url, caption)
+    media_id = publish_container(creation_id)
+    return media_id
+
+
+def get_account_info() -> dict:
+    """계정 정보를 가져와 연결 상태를 확인합니다."""
+    return _api("get", INSTAGRAM_ACCOUNT_ID, params={"fields": "id,username,name"})
+
+
+def refresh_access_token() -> dict:
+    """
+    Long-lived token을 갱신합니다. (만료 30일 전부터 갱신 가능)
+    갱신된 토큰 정보를 반환합니다.
+    """
+    data = _api(
+        "get",
+        "oauth/access_token",
+        params={
+            "grant_type": "fb_exchange_token",
+            "client_id": os.getenv("META_APP_ID", ""),
+            "client_secret": os.getenv("META_APP_SECRET", ""),
+            "fb_exchange_token": ACCESS_TOKEN,
+        },
+    )
+    return data
