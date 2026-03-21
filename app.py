@@ -269,6 +269,29 @@ def test_connections():
     return jsonify(results)
 
 
+# ───────────────────────────── Webhook ───────────────────────────────────
+
+@app.route("/webhook/instagram", methods=["GET"])
+def instagram_webhook_verify():
+    """Meta Webhook 인증 (GET)"""
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    verify_token = os.getenv("WEBHOOK_VERIFY_TOKEN", "myverifytoken123")
+    if mode == "subscribe" and token == verify_token:
+        return challenge, 200
+    return "Forbidden", 403
+
+
+@app.route("/webhook/instagram", methods=["POST"])
+def instagram_webhook_receive():
+    """Meta Webhook 이벤트 수신 (POST)"""
+    payload = request.json or {}
+    _log(f"[Webhook] 이벤트 수신: {json.dumps(payload)[:200]}")
+    return "OK", 200
+
+
 if __name__ == "__main__":
     print("=" * 50)
     print("  WordPress → Instagram 자동 게시")
