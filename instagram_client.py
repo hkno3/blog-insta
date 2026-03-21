@@ -14,15 +14,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INSTAGRAM_ACCOUNT_ID = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
-ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN", "")
 GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
 
 
 def _api(method: str, endpoint: str, **kwargs) -> dict:
+    access_token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "")
     url = f"{GRAPH_API_BASE}/{endpoint}"
     params = kwargs.pop("params", {})
-    params["access_token"] = ACCESS_TOKEN
+    params["access_token"] = access_token
     resp = getattr(requests, method)(url, params=params, timeout=30, **kwargs)
     data = resp.json()
     if "error" in data:
@@ -38,9 +37,10 @@ def create_image_container(image_url: str, caption: str) -> str:
     Returns:
         creation_id (게시에 사용할 컨테이너 ID)
     """
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
     data = _api(
         "post",
-        f"{INSTAGRAM_ACCOUNT_ID}/media",
+        f"{account_id}/media",
         json={
             "image_url": image_url,
             "caption": caption,
@@ -56,9 +56,10 @@ def publish_container(creation_id: str) -> str:
     Returns:
         게시된 미디어 ID
     """
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
     data = _api(
         "post",
-        f"{INSTAGRAM_ACCOUNT_ID}/media_publish",
+        f"{account_id}/media_publish",
         json={"creation_id": creation_id},
     )
     return data["id"]
@@ -82,7 +83,8 @@ def post_to_instagram(image_url: str, caption: str) -> str:
 
 def get_account_info() -> dict:
     """계정 정보를 가져와 연결 상태를 확인합니다."""
-    return _api("get", INSTAGRAM_ACCOUNT_ID, params={"fields": "id,username,name"})
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+    return _api("get", account_id, params={"fields": "id,username,name"})
 
 
 def refresh_access_token() -> dict:
@@ -97,7 +99,7 @@ def refresh_access_token() -> dict:
             "grant_type": "fb_exchange_token",
             "client_id": os.getenv("META_APP_ID", ""),
             "client_secret": os.getenv("META_APP_SECRET", ""),
-            "fb_exchange_token": ACCESS_TOKEN,
+            "fb_exchange_token": os.getenv("INSTAGRAM_ACCESS_TOKEN", ""),
         },
     )
     return data
