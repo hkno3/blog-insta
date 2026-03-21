@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 CAPTION_MAX_LENGTH = int(os.getenv("CAPTION_MAX_LENGTH", "2000"))
-HASHTAGS = os.getenv("HASHTAGS", "#블로그 #정보공유")
 BLOG_LINK_TEXT = os.getenv("BLOG_LINK_TEXT", "🔗 블로그 링크는 프로필 바이오에!")
 
 _model = None
@@ -36,9 +35,8 @@ def generate_instagram_caption(post: dict) -> str:
     content = post["plain_text"][:3000]  # 토큰 절약을 위해 앞부분만 사용
     url = post["url"]
 
-    # 해시태그와 링크 안내 문구를 제외한 본문 캡션 최대 길이
-    footer = f"\n\n{BLOG_LINK_TEXT}\n{HASHTAGS}"
-    body_max = CAPTION_MAX_LENGTH - len(footer)
+    # 해시태그와 링크 안내 문구를 제외한 본문 캡션 최대 길이 (여유분 150자 확보)
+    body_max = CAPTION_MAX_LENGTH - len(BLOG_LINK_TEXT) - 150
 
     prompt = f"""다음 블로그 글을 인스타그램 캡션으로 작성해주세요.
 
@@ -60,11 +58,34 @@ def generate_instagram_caption(post: dict) -> str:
 
 캡션 텍스트만 출력하세요. 부가 설명 없이."""
 
-    response = _get_model().generate_content(prompt)
+    hashtag_prompt = f"""다음 블로그 글에 어울리는 인스타그램 해시태그를 생성해주세요.
+
+[조건]
+- 건강 블로그 계정용
+- 글 내용과 직접 관련된 구체적인 태그 5~7개
+- 건강 블로그 공통 태그 3~5개 (예: #건강 #건강정보 #건강관리)
+- 총 10~12개 해시태그
+- #기호 포함해서 공백으로 구분
+- 한국어 태그 위주, 영어 태그 1~2개 허용
+
+[블로그 제목]
+{title}
+
+[블로그 본문 요약]
+{content[:500]}
+
+해시태그만 출력하세요. 부가 설명 없이."""
+
+    model = _get_model()
+    response = model.generate_content(prompt)
     body = response.text.strip()
+
+    hashtag_response = model.generate_content(hashtag_prompt)
+    hashtags = hashtag_response.text.strip()
 
     # 글자수 초과 시 자르기
     if len(body) > body_max:
         body = body[:body_max - 3] + "..."
 
+    footer = f"\n\n{BLOG_LINK_TEXT}\n{hashtags}"
     return f"{body}{footer}"
