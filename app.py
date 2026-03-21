@@ -234,6 +234,40 @@ def get_status():
         })
 
 
+@app.route("/api/debug/instagram")
+def debug_instagram():
+    """Instagram 토큰 디버그 - 토큰 상태 및 오류 상세 확인"""
+    load_dotenv(override=True)
+    import requests as req
+
+    token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "").strip()
+    account_id = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "").strip()
+
+    info = {
+        "token_length": len(token),
+        "token_preview": token[:8] + "..." + token[-4:] if len(token) > 12 else "(짧음)",
+        "account_id": account_id,
+    }
+
+    # /me 엔드포인트로 토큰 자체 유효성 확인
+    me_resp = req.get(
+        "https://graph.facebook.com/v21.0/me",
+        params={"access_token": token, "fields": "id,name"},
+        timeout=10,
+    )
+    info["me_raw"] = me_resp.json()
+
+    # account_id로 Instagram 계정 조회
+    ig_resp = req.get(
+        f"https://graph.facebook.com/v21.0/{account_id}",
+        params={"access_token": token, "fields": "id,username,name"},
+        timeout=10,
+    )
+    info["ig_raw"] = ig_resp.json()
+
+    return jsonify(info)
+
+
 @app.route("/api/test")
 def test_connections():
     """API 연결 상태 확인"""
