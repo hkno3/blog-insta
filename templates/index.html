@@ -239,14 +239,14 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><h2>Claude AI 설정</h2></div>
+        <div class="card-header"><h2>Gemini AI 설정</h2></div>
         <div class="card-body">
           <div class="form-group">
-            <label>Anthropic API Key</label>
-            <input type="password" id="ANTHROPIC_API_KEY" placeholder="sk-ant-...">
+            <label>Gemini API Key</label>
+            <input type="password" id="GEMINI_API_KEY" placeholder="AIza...">
           </div>
           <div style="font-size:.78rem;color:#9ca3af;">
-            👉 <a href="https://console.anthropic.com" target="_blank" style="color:#667eea;">console.anthropic.com</a>에서 발급
+            👉 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#667eea;">aistudio.google.com</a>에서 무료 발급
           </div>
         </div>
       </div>
@@ -363,7 +363,7 @@ async function testConnections() {
   try {
     const res = await fetch('/api/test');
     const data = await res.json();
-    const names = { wordpress: 'WordPress', instagram: 'Instagram', claude: 'Claude AI' };
+    const names = { wordpress: 'WordPress', instagram: 'Instagram', gemini: 'Gemini AI' };
     box.innerHTML = Object.entries(data).map(([k, v]) => `
       <div class="conn-item">
         <div>
@@ -464,7 +464,7 @@ async function loadHistory() {
 }
 
 // ─── 설정 ───
-const SETTING_KEYS = ['WP_SITE_URL','WP_USERNAME','WP_APP_PASSWORD','INSTAGRAM_BUSINESS_ACCOUNT_ID','INSTAGRAM_ACCESS_TOKEN','ANTHROPIC_API_KEY','CHECK_INTERVAL_HOURS','CAPTION_MAX_LENGTH','HASHTAGS','BLOG_LINK_TEXT'];
+const SETTING_KEYS = ['WP_SITE_URL','WP_USERNAME','WP_APP_PASSWORD','INSTAGRAM_BUSINESS_ACCOUNT_ID','INSTAGRAM_ACCESS_TOKEN','GEMINI_API_KEY','CHECK_INTERVAL_HOURS','CAPTION_MAX_LENGTH','HASHTAGS','BLOG_LINK_TEXT'];
 
 async function loadSettings() {
   const res = await fetch('/api/settings');
