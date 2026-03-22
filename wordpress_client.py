@@ -20,7 +20,7 @@ def _get_auth():
     return None
 
 
-_HEADERS = {"Accept": "application/json", "Content-Type": "application/json"}
+_HEADERS = {"Accept": "application/json"}
 
 
 def get_recent_posts(count: int = 10) -> list[dict]:

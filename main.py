@@ -51,6 +51,10 @@ def run_once() -> None:
         log.error(f"워드프레스 API 호출 실패: {e}")
         return
 
+    if not isinstance(raw_posts, list):
+        log.error(f"워드프레스 API 응답 형식 오류: {type(raw_posts).__name__} — {str(raw_posts)[:200]}")
+        return
+
     new_posts = [p for p in raw_posts if not tracker.is_published(p["id"]) and not tracker.is_failed(p["id"])]
     if not new_posts:
         log.info("새로 게시할 글이 없습니다.")
