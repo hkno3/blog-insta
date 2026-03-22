@@ -10,12 +10,15 @@ from datetime import datetime
 from dotenv import load_dotenv, dotenv_values, set_key
 from flask import Flask, jsonify, render_template, request
 
+import schedule
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 ENV_FILE = os.path.join(os.path.dirname(__file__), ".env")
+
+CHECK_INTERVAL_HOURS = float(os.getenv("CHECK_INTERVAL_HOURS", "1"))
 
 # 백그라운드 작업 상태
 _job_status = {"running": False, "log": [], "last_run": None}
@@ -342,9 +345,21 @@ def instagram_webhook_receive():
     return "OK", 200
 
 
+def _scheduler_loop():
+    """백그라운드에서 주기적으로 run_once()를 실행합니다."""
+    from main import run_once
+    run_once()
+    schedule.every(CHECK_INTERVAL_HOURS).hours.do(run_once)
+    while True:
+        schedule.run_pending()
+        import time; time.sleep(60)
+
+
 if __name__ == "__main__":
     print("=" * 50)
     print("  WordPress → Instagram 자동 게시")
     print("  브라우저에서 http://localhost:5000 접속")
     print("=" * 50)
+    t = threading.Thread(target=_scheduler_loop, daemon=True)
+    t.start()
     app.run(debug=False, host="0.0.0.0", port=5000)
