@@ -2,7 +2,7 @@
 Gemini API를 사용해 블로그 글을 인스타그램용 캡션으로 변환합니다.
 """
 import os
-import google.generativeai as genai
+import google.genai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,15 +10,14 @@ load_dotenv()
 CAPTION_MAX_LENGTH = int(os.getenv("CAPTION_MAX_LENGTH", "2000"))
 BLOG_LINK_TEXT = os.getenv("BLOG_LINK_TEXT", "🔗 블로그 링크는 프로필 바이오에!")
 
-_model = None
+_client = None
 
 
-def _get_model():
-    global _model
-    if _model is None:
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        _model = genai.GenerativeModel("gemini-2.5-flash")
-    return _model
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return _client
 
 
 def generate_instagram_caption(post: dict) -> str:
@@ -76,11 +75,11 @@ def generate_instagram_caption(post: dict) -> str:
 
 해시태그만 출력하세요. 부가 설명 없이."""
 
-    model = _get_model()
-    response = model.generate_content(prompt)
+    client = _get_client()
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     body = response.text.strip()
 
-    hashtag_response = model.generate_content(hashtag_prompt)
+    hashtag_response = client.models.generate_content(model="gemini-2.5-flash", contents=hashtag_prompt)
     hashtags = hashtag_response.text.strip()
 
     # 글자수 초과 시 자르기
