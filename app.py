@@ -234,6 +234,22 @@ def get_status():
         })
 
 
+@app.route("/api/tracker/reset", methods=["POST"])
+def reset_tracker():
+    """failed_posts.json (또는 전체) 초기화"""
+    import tracker as tr
+    data = request.json or {}
+    target = data.get("target", "failed")  # "failed" | "all"
+
+    if target == "all":
+        open(tr.TRACKER_FILE, "w").write("{}")
+        open(tr.FAILED_FILE, "w").write("{}")
+        return jsonify({"ok": True, "message": "published + failed 초기화 완료"})
+    else:
+        open(tr.FAILED_FILE, "w").write("{}")
+        return jsonify({"ok": True, "message": "failed_posts 초기화 완료"})
+
+
 @app.route("/api/debug/instagram")
 def debug_instagram():
     """Instagram 토큰 디버그 - 토큰 상태 및 오류 상세 확인"""
