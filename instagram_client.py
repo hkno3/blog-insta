@@ -9,6 +9,7 @@ Meta Business Suite의 Instagram Graph API를 사용합니다.
 4. Long-lived Access Token 발급 (60일 유효, 갱신 가능)
 """
 import os
+import time
 import requests
 from dotenv import load_dotenv
 
@@ -65,6 +66,19 @@ def publish_container(creation_id: str) -> str:
     return data["id"]
 
 
+def wait_for_container(creation_id: str, max_wait: int = 60) -> None:
+    """컨테이너가 FINISHED 상태가 될 때까지 대기합니다."""
+    for _ in range(max_wait // 5):
+        data = _api("get", creation_id, params={"fields": "status_code,status"})
+        status = data.get("status_code", "")
+        if status == "FINISHED":
+            return
+        if status == "ERROR":
+            raise RuntimeError(f"컨테이너 처리 오류: {data.get('status')}")
+        time.sleep(5)
+    raise RuntimeError("컨테이너 준비 시간 초과 (60초)")
+
+
 def post_to_instagram(image_url: str, caption: str) -> str:
     """
     이미지와 캡션으로 인스타그램에 게시합니다.
@@ -77,6 +91,7 @@ def post_to_instagram(image_url: str, caption: str) -> str:
         게시된 미디어 ID
     """
     creation_id = create_image_container(image_url, caption)
+    wait_for_container(creation_id)
     media_id = publish_container(creation_id)
     return media_id
 
