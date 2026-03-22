@@ -51,23 +51,24 @@ def run_once() -> None:
         log.error(f"워드프레스 API 호출 실패: {e}")
         return
 
-    new_posts = [p for p in raw_posts if not tracker.is_published(p["id"])]
+    new_posts = [p for p in raw_posts if not tracker.is_published(p["id"]) and not tracker.is_failed(p["id"])]
     if not new_posts:
         log.info("새로 게시할 글이 없습니다.")
         return
 
-    log.info(f"미게시 글 {len(new_posts)}개 중 1개 업로드")
+    # 오래된 글부터 순서대로 시도, 성공하면 바로 종료
+    candidates = list(reversed(new_posts))  # 오래된 글부터
+    log.info(f"미게시 글 {len(candidates)}개 중 1개 업로드 시도")
 
-    # 가장 오래된 미게시 글 1개만 처리
-    for raw in new_posts[-1:]:
+    for raw in candidates:
         post = wp.parse_post(raw)
         log.info(f"처리 중: [{post['id']}] {post['title']}")
 
         # 대표 이미지 가져오기
         image_url = wp.get_featured_image_url(raw)
         if not image_url:
-            log.warning(f"대표 이미지 없음 - 건너뜀: {post['title']}")
-            log.warning("  → 워드프레스 글에 대표 이미지를 설정하면 자동으로 사용됩니다.")
+            log.warning(f"대표 이미지 없음 - 스킵: {post['title']}")
+            tracker.mark_failed(post["id"], post["title"], "대표 이미지 없음")
             continue
 
         # Claude로 캡션 생성
@@ -75,7 +76,8 @@ def run_once() -> None:
             caption = generate_instagram_caption(post)
             log.info(f"캡션 생성 완료 ({len(caption)}자)")
         except Exception as e:
-            log.error(f"캡션 생성 실패: {e}")
+            log.error(f"캡션 생성 실패 - 스킵: {e}")
+            tracker.mark_failed(post["id"], post["title"], f"캡션 생성 실패: {e}")
             continue
 
         # 인스타그램 게시
@@ -85,8 +87,13 @@ def run_once() -> None:
             log.info(f"인스타그램 게시 완료! media_id={media_id}")
             log.info(f"  제목: {post['title']}")
             log.info(f"  원문: {post['url']}")
+            return  # 1개 성공하면 종료, 1시간 뒤 다시 실행
         except Exception as e:
-            log.error(f"인스타그램 게시 실패: {e}")
+            log.error(f"인스타그램 게시 실패 - 다음 글 시도: {e}")
+            tracker.mark_failed(post["id"], post["title"], f"Instagram API 오류: {e}")
+            continue
+
+    log.warning("모든 미게시 글 게시 실패. failed_posts.json 확인 필요.")
 
 
 
