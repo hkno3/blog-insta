@@ -20,6 +20,9 @@ def _get_auth():
     return None
 
 
+_HEADERS = {"Accept": "application/json", "Content-Type": "application/json"}
+
+
 def get_recent_posts(count: int = 10) -> list[dict]:
     """최근 워드프레스 글 목록을 가져옵니다."""
     url = f"{WP_SITE_URL}/wp-json/wp/v2/posts"
@@ -30,7 +33,7 @@ def get_recent_posts(count: int = 10) -> list[dict]:
         "status": "publish",
         "_fields": "id,date,title,link,content,excerpt,featured_media,categories",
     }
-    resp = requests.get(url, params=params, auth=_get_auth(), timeout=30)
+    resp = requests.get(url, params=params, auth=_get_auth(), headers=_HEADERS, timeout=30)
     resp.raise_for_status()
     return resp.json()
 
@@ -42,7 +45,7 @@ def get_featured_image_url(post: dict) -> str | None:
         return None
     url = f"{WP_SITE_URL}/wp-json/wp/v2/media/{media_id}"
     try:
-        resp = requests.get(url, auth=_get_auth(), timeout=15)
+        resp = requests.get(url, auth=_get_auth(), headers=_HEADERS, timeout=15)
         resp.raise_for_status()
         data = resp.json()
         # 적절한 크기 선택 (large > medium_large > full)
