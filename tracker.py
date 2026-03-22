@@ -6,8 +6,9 @@ import json
 import os
 from datetime import datetime
 
-TRACKER_FILE = os.path.join(os.path.dirname(__file__), "published_posts.json")
-FAILED_FILE = os.path.join(os.path.dirname(__file__), "failed_posts.json")
+_DATA_DIR = os.getenv("DATA_DIR", os.path.dirname(__file__))
+TRACKER_FILE = os.path.join(_DATA_DIR, "published_posts.json")
+FAILED_FILE = os.path.join(_DATA_DIR, "failed_posts.json")
 
 
 def _load() -> dict:
