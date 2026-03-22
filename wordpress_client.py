@@ -33,7 +33,11 @@ def get_recent_posts(count: int = 10) -> list[dict]:
         "status": "publish",
         "_fields": "id,date,title,link,content,excerpt,featured_media,categories",
     }
-    resp = requests.get(url, params=params, auth=_get_auth(), headers=_HEADERS, timeout=30)
+    auth = _get_auth()
+    resp = requests.get(url, params=params, auth=auth, headers=_HEADERS, timeout=30)
+    # 인증 오류 시 인증 없이 재시도 (공개 글은 인증 불필요)
+    if resp.status_code == 401 and auth:
+        resp = requests.get(url, params=params, headers=_HEADERS, timeout=30)
     resp.raise_for_status()
     return resp.json()
 
