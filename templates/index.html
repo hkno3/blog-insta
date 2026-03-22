@@ -187,6 +187,7 @@
       <div class="card-header">
         <h2>인스타그램 게시 이력</h2>
         <span id="history-count" class="badge badge-blue">0건</span>
+        <button onclick="resetTracker()" style="margin-left:auto;padding:4px 12px;background:#ef4444;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;">전체 초기화</button>
       </div>
       <div class="card-body" id="history-list">
         <div class="empty">아직 게시된 글이 없습니다</div>
@@ -441,6 +442,15 @@ async function postSingle(id, imageUrl, title) {
   } else {
     toast(data.error || '오류 발생', 'error');
   }
+}
+
+// ─── 트래커 초기화 ───
+async function resetTracker() {
+  if (!confirm('published + failed 기록을 모두 초기화합니다.\n이미 인스타그램에 올린 글도 다시 올라올 수 있습니다.\n계속할까요?')) return;
+  const res = await fetch('/api/tracker/reset', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({target:'all'})});
+  const data = await res.json();
+  toast(data.message || '초기화 완료', 'success');
+  loadHistory();
 }
 
 // ─── 게시 이력 ───
