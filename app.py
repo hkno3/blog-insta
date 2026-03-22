@@ -88,7 +88,7 @@ def get_wp_posts():
     """WordPress 최근 글 목록"""
     try:
         import wordpress_client as wp
-        raws = wp.get_recent_posts(count=20)
+        raws = wp.get_recent_posts(count=100)
         posts = [wp.parse_post(r) for r in raws]
         # 이미지 URL 포함
         for i, r in enumerate(raws):
@@ -132,7 +132,7 @@ def post_now():
             from summarizer import generate_instagram_caption
 
             _log("워드프레스 최근 글 확인 중...")
-            raws = wp.get_recent_posts(count=10)
+            raws = wp.get_recent_posts(count=100)
             new_posts = [p for p in raws if not tracker.is_published(p["id"])]
 
             if not new_posts:

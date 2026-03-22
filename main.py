@@ -46,7 +46,7 @@ def run_once() -> None:
     """새 워드프레스 글을 확인하고 인스타그램에 게시합니다."""
     log.info("워드프레스 최근 글 확인 중...")
     try:
-        raw_posts = wp.get_recent_posts(count=10)
+        raw_posts = wp.get_recent_posts(count=100)
     except Exception as e:
         log.error(f"워드프레스 API 호출 실패: {e}")
         return
