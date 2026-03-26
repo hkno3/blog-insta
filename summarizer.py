@@ -37,29 +37,18 @@ def generate_instagram_caption(post: dict) -> str:
     # 해시태그와 링크 안내 문구를 제외한 본문 캡션 최대 길이 (여유분 150자 확보)
     body_max = CAPTION_MAX_LENGTH - len(BLOG_LINK_TEXT) - 150
 
-    prompt = f"""다음 블로그 글을 인스타그램 캡션으로 작성해주세요.
+    prompt = f"""다음 블로그 글을 인스타그램용 캡션과 해시태그로 작성해주세요.
 
-[조건]
+[캡션 조건]
 - 한국어로 작성
 - 핵심 내용을 자연스럽고 친근한 말투로 요약
 - 독자가 블로그 본문을 읽고 싶게 흥미를 유발
 - 이모지 2~4개 적절히 사용
 - 줄바꿈으로 가독성 확보
-- {body_max}자 이내 (해시태그 제외)
-- 해시태그는 포함하지 말 것 (별도로 추가됨)
-- 블로그 URL은 포함하지 말 것 (별도로 안내됨)
+- {body_max}자 이내
+- 블로그 URL은 포함하지 말 것
 
-[블로그 제목]
-{title}
-
-[블로그 본문]
-{content}
-
-캡션 텍스트만 출력하세요. 부가 설명 없이."""
-
-    hashtag_prompt = f"""다음 블로그 글에 어울리는 인스타그램 해시태그를 생성해주세요.
-
-[조건]
+[해시태그 조건]
 - 건강 블로그 계정용
 - 글 내용과 직접 관련된 구체적인 태그 3개
 - 건강 블로그 공통 태그 1개 (예: #건강 #건강정보 #건강관리 중 가장 적합한 것 1개)
@@ -70,17 +59,28 @@ def generate_instagram_caption(post: dict) -> str:
 [블로그 제목]
 {title}
 
-[블로그 본문 요약]
-{content[:500]}
+[블로그 본문]
+{content}
 
-해시태그만 출력하세요. 부가 설명 없이."""
+아래 형식으로만 출력하세요. 부가 설명 없이.
+
+===CAPTION===
+(캡션 텍스트)
+===HASHTAGS===
+(해시태그)"""
 
     client = _get_client()
     response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-    body = response.text.strip()
+    output = response.text.strip()
 
-    hashtag_response = client.models.generate_content(model="gemini-2.5-flash", contents=hashtag_prompt)
-    hashtags = hashtag_response.text.strip()
+    if "===CAPTION===" in output and "===HASHTAGS===" in output:
+        parts = output.split("===HASHTAGS===")
+        body = parts[0].replace("===CAPTION===", "").strip()
+        hashtags = parts[1].strip()
+    else:
+        # 파싱 실패 시 전체를 캡션으로, 해시태그는 빈 값
+        body = output
+        hashtags = ""
 
     # 글자수 초과 시 자르기
     if len(body) > body_max:
