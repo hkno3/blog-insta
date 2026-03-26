@@ -237,6 +237,16 @@ def get_status():
         })
 
 
+@app.route("/api/published/<int:wp_post_id>", methods=["DELETE"])
+def delete_published(wp_post_id):
+    """게시 이력에서 특정 글 삭제"""
+    import tracker as tr
+    ok = tr.delete_published(wp_post_id)
+    if ok:
+        return jsonify({"ok": True, "message": f"WP ID {wp_post_id} 삭제 완료"})
+    return jsonify({"ok": False, "message": "해당 글을 찾을 수 없습니다."}), 404
+
+
 @app.route("/api/tracker/reset", methods=["POST"])
 def reset_tracker():
     """failed_posts.json (또는 전체) 초기화"""
