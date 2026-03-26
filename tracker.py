@@ -58,9 +58,18 @@ def _save_failed(data: dict) -> None:
 
 
 def is_failed(wp_post_id: int) -> bool:
-    """해당 글이 실패로 기록됐는지 확인합니다."""
+    """해당 글이 실패로 기록됐는지 확인합니다.
+    429(할당량 초과) 실패는 오늘 실패한 경우만 스킵하고, 이전 날 실패면 재시도 허용합니다."""
     data = _load_failed()
-    return str(wp_post_id) in data
+    entry = data.get(str(wp_post_id))
+    if entry is None:
+        return False
+    reason = entry.get("reason", "")
+    if "429" in reason or "RESOURCE_EXHAUSTED" in reason:
+        failed_date = entry.get("failed_at", "")[:10]  # YYYY-MM-DD
+        today = datetime.now().strftime("%Y-%m-%d")
+        return failed_date == today  # 오늘 실패 → 스킵, 이전 날 실패 → 재시도
+    return True
 
 
 def mark_failed(wp_post_id: int, post_title: str, reason: str) -> None:
