@@ -45,6 +45,16 @@ def get_all_published() -> dict:
     return _load()
 
 
+def delete_published(wp_post_id: int) -> bool:
+    """게시 이력에서 특정 글을 삭제합니다. 삭제 성공 시 True 반환."""
+    data = _load()
+    if str(wp_post_id) not in data:
+        return False
+    del data[str(wp_post_id)]
+    _save(data)
+    return True
+
+
 def _load_failed() -> dict:
     if not os.path.exists(FAILED_FILE):
         return {}
