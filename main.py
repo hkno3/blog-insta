@@ -80,6 +80,10 @@ def run_once() -> None:
             caption = generate_instagram_caption(post)
             log.info(f"캡션 생성 완료 ({len(caption)}자)")
         except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                log.warning(f"Gemini API 한도 초과 - 다음 실행에 재시도: {post['title']}")
+                break  # 한도 소진 시 더 시도해도 소용없으므로 루프 종료
             log.error(f"캡션 생성 실패 - 스킵: {e}")
             tracker.mark_failed(post["id"], post["title"], f"캡션 생성 실패: {e}")
             continue

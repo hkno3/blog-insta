@@ -70,7 +70,22 @@ def generate_instagram_caption(post: dict) -> str:
 (해시태그)"""
 
     client = _get_client()
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+            break
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                import re
+                delay_match = re.search(r"retryDelay.*?(\d+)s", err_str)
+                wait = int(delay_match.group(1)) if delay_match else 60
+                if attempt < max_retries - 1:
+                    import time as _time
+                    _time.sleep(wait + 1)
+                    continue
+            raise
     output = response.text.strip()
 
     if "===CAPTION===" in output and "===HASHTAGS===" in output:
