@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 CAPTION_MAX_LENGTH = int(os.getenv("CAPTION_MAX_LENGTH", "2000"))
-BLOG_LINK_TEXT = os.getenv("BLOG_LINK_TEXT", "🔗 블로그 링크는 프로필 바이오에!")
+BLOG_LINK_TEXT = os.getenv("BLOG_LINK_TEXT", "더 많은 콘텐츠 정보는? @bodyandwell 을 팔로우 해주세요💚")
 
 _client = None
 
