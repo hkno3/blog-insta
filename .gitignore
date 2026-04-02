@@ -1,5 +1,4 @@
 .env
-published_posts.json
 __pycache__/
 *.pyc
 *.pyo
