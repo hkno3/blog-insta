@@ -136,10 +136,10 @@ def run_once_from_sheets() -> None:
 
         log.info(f"제목: {post['title']}")
 
-        # 대표 이미지 확인
+        # 대표 이미지 확인 (WebP 변환 실패 포함)
         if not post["image_url"]:
-            log.warning(f"og:image 없음 - 스킵: {url}")
-            tracker.mark_failed_url(url, post["title"], "og:image 없음")
+            log.warning(f"JPEG 이미지 없음 - 스킵: {url}")
+            tracker.mark_failed_url(url, post["title"], "JPEG 이미지 없음")
             continue
 
         log.info(f"이미지: {post['image_url']}")

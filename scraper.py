@@ -1,13 +1,23 @@
 """
 URL에 접속해서 제목, 본문, 대표 이미지(og:image)를 추출합니다.
 """
+import io
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
 
-def _to_jpeg_url(image_url: str) -> str:
-    """WebP URL을 JPEG URL로 교체 시도. 실패하면 원본 반환."""
+
+def _to_jpeg_url(image_url: str) -> str | None:
+    """
+    WebP URL을 Instagram이 지원하는 JPEG URL로 변환합니다.
+    1. .jpg 버전 URL 시도
+    2. WebP 다운로드 → JPEG 변환 → 임시 호스팅 업로드
+    변환 불가 시 None 반환 (Gemini 호출 없이 스킵하기 위함)
+    """
     if not image_url.lower().endswith(".webp"):
         return image_url
+
+    # 1단계: .jpg 버전 URL 시도
     jpg_url = image_url[:-5] + ".jpg"
     try:
         resp = requests.head(jpg_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
@@ -15,7 +25,28 @@ def _to_jpeg_url(image_url: str) -> str:
             return jpg_url
     except Exception:
         pass
-    return image_url  # jpg 없으면 원본 webp 반환 (게시 시 실패 처리됨)
+
+    # 2단계: WebP 다운로드 → JPEG 변환 → 0x0.st 임시 업로드
+    try:
+        resp = requests.get(image_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+        resp.raise_for_status()
+
+        img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=90)
+        buf.seek(0)
+
+        upload = requests.post(
+            "https://0x0.st",
+            files={"file": ("image.jpg", buf, "image/jpeg")},
+            timeout=30,
+        )
+        if upload.status_code == 200:
+            return upload.text.strip()
+    except Exception:
+        pass
+
+    return None  # 변환 실패 → 이미지 없음으로 처리
 
 
 _HEADERS = {
