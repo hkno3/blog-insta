@@ -25,6 +25,8 @@ def get_post_urls() -> list[str]:
     for i, row in enumerate(reader):
         if i == 0:  # A1: 도메인 주소 스킵
             continue
+        if i > 49:  # A50까지만 읽기
+            break
         if row and row[0].strip().startswith("http"):
             urls.append(row[0].strip())
     return urls
