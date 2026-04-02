@@ -101,5 +101,5 @@ def generate_instagram_caption(post: dict) -> str:
     if len(body) > body_max:
         body = body[:body_max - 3] + "..."
 
-    footer = f"\n\n{BLOG_LINK_TEXT}\n{hashtags}"
+    footer = f"\n\n{BLOG_LINK_TEXT}\n\n{hashtags}"
     return f"{body}{footer}"
