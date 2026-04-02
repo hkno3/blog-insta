@@ -8,10 +8,10 @@ from bs4 import BeautifulSoup
 def _get_wp_original_image(page_url: str) -> str | None:
     """WordPress REST API로 원본 JPEG 이미지 URL을 가져옵니다. (인증 불필요)"""
     try:
-        from urllib.parse import urlparse
+        from urllib.parse import urlparse, unquote
         parsed = urlparse(page_url)
         base = f"{parsed.scheme}://{parsed.netloc}"
-        slug = [p for p in parsed.path.split("/") if p][-1]
+        slug = unquote([p for p in parsed.path.split("/") if p][-1])
 
         resp = requests.get(
             f"{base}/wp-json/wp/v2/posts",
