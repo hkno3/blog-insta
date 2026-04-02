@@ -120,10 +120,10 @@ def run_once_from_sheets() -> None:
         log.info("새로 게시할 글이 없습니다.")
         return
 
-    # 오래된 글부터 (시트 순서 = 오래된 순)
+    # 오래된 글부터 (시트 순서 = 오래된 순), 최대 20개 시도
     log.info(f"미게시 글 {len(candidates)}개 중 1개 업로드 시도")
 
-    for url in candidates:
+    for url in candidates[:20]:
         log.info(f"스크래핑 중: {url}")
 
         # 페이지 스크래핑

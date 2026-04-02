@@ -4,6 +4,20 @@ URL에 접속해서 제목, 본문, 대표 이미지(og:image)를 추출합니�
 import requests
 from bs4 import BeautifulSoup
 
+def _to_jpeg_url(image_url: str) -> str:
+    """WebP URL을 JPEG URL로 교체 시도. 실패하면 원본 반환."""
+    if not image_url.lower().endswith(".webp"):
+        return image_url
+    jpg_url = image_url[:-5] + ".jpg"
+    try:
+        resp = requests.head(jpg_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        if resp.status_code == 200:
+            return jpg_url
+    except Exception:
+        pass
+    return image_url  # jpg 없으면 원본 webp 반환 (게시 시 실패 처리됨)
+
+
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -37,9 +51,11 @@ def scrape_post(url: str) -> dict | None:
     else:
         title = ""
 
-    # 대표 이미지: og:image
+    # 대표 이미지: og:image → WebP면 JPEG로 교체 시도
     og_image = soup.find("meta", property="og:image")
     image_url = og_image["content"].strip() if og_image and og_image.get("content") else None
+    if image_url:
+        image_url = _to_jpeg_url(image_url)
 
     # 본문: WordPress 일반적인 클래스명 순으로 탐색
     content_div = (
