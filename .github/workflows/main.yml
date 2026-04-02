@@ -2,8 +2,11 @@ name: WordPress → Instagram 자동 게시
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 3시간마다 실행 (UTC 기준 0시, 3시, 6시, ...)
+    - cron: '0 15,18,21,0,3,6,9,12 * * *'  # 한국시간 기준 0시,3시,6시,9시,12시,15시,18시,21시 (UTC+9)
   workflow_dispatch:        # 수동 실행 버튼
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   post:
