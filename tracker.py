@@ -91,3 +91,46 @@ def mark_failed(wp_post_id: int, post_title: str, reason: str) -> None:
         "reason": reason,
     }
     _save_failed(data)
+
+
+# ── URL 기반 추적 (Google Sheets 방식) ──────────────────────────────────────
+
+def is_published_url(url: str) -> bool:
+    """해당 URL이 이미 게시됐는지 확인합니다."""
+    return url in _load()
+
+
+def mark_published_url(url: str, instagram_media_id: str, post_title: str) -> None:
+    """게시 완료된 URL을 기록합니다."""
+    data = _load()
+    data[url] = {
+        "instagram_media_id": instagram_media_id,
+        "title": post_title,
+        "published_at": datetime.now().isoformat(),
+    }
+    _save(data)
+
+
+def is_failed_url(url: str) -> bool:
+    """해당 URL이 실패로 기록됐는지 확인합니다.
+    429 실패는 오늘만 스킵하고 다음 날 재시도합니다."""
+    entry = _load_failed().get(url)
+    if entry is None:
+        return False
+    reason = entry.get("reason", "")
+    if "429" in reason or "RESOURCE_EXHAUSTED" in reason:
+        failed_date = entry.get("failed_at", "")[:10]
+        today = datetime.now().strftime("%Y-%m-%d")
+        return failed_date == today
+    return True
+
+
+def mark_failed_url(url: str, post_title: str, reason: str) -> None:
+    """게시 실패한 URL을 기록합니다."""
+    data = _load_failed()
+    data[url] = {
+        "title": post_title,
+        "failed_at": datetime.now().isoformat(),
+        "reason": reason,
+    }
+    _save_failed(data)

@@ -21,6 +21,8 @@ import tracker
 import wordpress_client as wp
 import instagram_client as ig
 from summarizer import generate_instagram_caption
+import sheets_client
+from scraper import scrape_post
 
 load_dotenv()
 
@@ -99,6 +101,78 @@ def run_once() -> None:
 
 
 
+def run_once_from_sheets() -> None:
+    """구글 시트 URL 목록을 읽어 미게시 글 1개를 인스타그램에 게시합니다."""
+    log.info("구글 시트에서 URL 목록 가져오는 중...")
+    try:
+        urls = sheets_client.get_post_urls()
+    except Exception as e:
+        log.error(f"구글 시트 접근 실패: {e}")
+        return
+
+    if not urls:
+        log.info("시트에 URL이 없습니다.")
+        return
+
+    # 미게시 + 미실패 URL만 필터링
+    candidates = [u for u in urls if not tracker.is_published_url(u) and not tracker.is_failed_url(u)]
+    if not candidates:
+        log.info("새로 게시할 글이 없습니다.")
+        return
+
+    # 오래된 글부터 (시트 순서 = 오래된 순)
+    log.info(f"미게시 글 {len(candidates)}개 중 1개 업로드 시도")
+
+    for url in candidates:
+        log.info(f"스크래핑 중: {url}")
+
+        # 페이지 스크래핑
+        try:
+            post = scrape_post(url)
+        except Exception as e:
+            log.error(f"스크래핑 실패 - 스킵: {e}")
+            tracker.mark_failed_url(url, url, f"스크래핑 실패: {e}")
+            continue
+
+        log.info(f"제목: {post['title']}")
+
+        # 대표 이미지 확인
+        if not post["image_url"]:
+            log.warning(f"og:image 없음 - 스킵: {url}")
+            tracker.mark_failed_url(url, post["title"], "og:image 없음")
+            continue
+
+        log.info(f"이미지: {post['image_url']}")
+
+        # 캡션 생성
+        try:
+            caption = generate_instagram_caption(post)
+            log.info(f"캡션 생성 완료 ({len(caption)}자)")
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                log.warning(f"Gemini API 한도 초과 - 다음 실행에 재시도: {url}")
+                break
+            log.error(f"캡션 생성 실패 - 스킵: {e}")
+            tracker.mark_failed_url(url, post["title"], f"캡션 생성 실패: {e}")
+            continue
+
+        # 인스타그램 게시
+        try:
+            media_id = ig.post_to_instagram(post["image_url"], caption)
+            tracker.mark_published_url(url, media_id, post["title"])
+            log.info(f"인스타그램 게시 완료! media_id={media_id}")
+            log.info(f"  제목: {post['title']}")
+            log.info(f"  원문: {url}")
+            return  # 1개 성공 후 종료
+        except Exception as e:
+            log.error(f"인스타그램 게시 실패 - 다음 글 시도: {e}")
+            tracker.mark_failed_url(url, post["title"], f"Instagram API 오류: {e}")
+            continue
+
+    log.warning("모든 미게시 글 게시 실패.")
+
+
 def test_connections() -> None:
     """WordPress, Instagram, Claude API 연결을 테스트합니다."""
     print("\n=== 연결 테스트 ===\n")
@@ -157,7 +231,7 @@ def main():
     elif args.list:
         list_published()
     else:
-        run_once()
+        run_once_from_sheets()
 
 
 if __name__ == "__main__":
