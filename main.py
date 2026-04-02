@@ -5,9 +5,6 @@ WordPress → Instagram 자동 게시 메인 스크립트
   # 한 번 실행 (새 글 확인 후 게시):
   python main.py
 
-  # 주기적 자동 실행 (스케줄러):
-  python main.py --schedule
-
   # 연결 상태 테스트:
   python main.py --test
 
@@ -18,8 +15,6 @@ import argparse
 import logging
 import os
 import sys
-import time
-import schedule
 from dotenv import load_dotenv
 
 import tracker
@@ -38,8 +33,6 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
-
-CHECK_INTERVAL_HOURS = float(os.getenv("CHECK_INTERVAL_HOURS", "1"))
 
 
 def run_once() -> None:
@@ -105,15 +98,6 @@ def run_once() -> None:
 
 
 
-def run_schedule() -> None:
-    """주기적으로 run_once()를 실행합니다."""
-    log.info(f"스케줄러 시작: {CHECK_INTERVAL_HOURS}시간마다 1개 업로드")
-    run_once()  # 시작 즉시 한 번 실행
-    schedule.every(CHECK_INTERVAL_HOURS).hours.do(run_once)
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
 
 def test_connections() -> None:
     """WordPress, Instagram, Claude API 연결을 테스트합니다."""
@@ -164,7 +148,6 @@ def list_published() -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="WordPress → Instagram 자동 게시")
-    parser.add_argument("--schedule", action="store_true", help="주기적 자동 실행 모드")
     parser.add_argument("--test", action="store_true", help="연결 상태 테스트")
     parser.add_argument("--list", action="store_true", help="게시 이력 출력")
     args = parser.parse_args()
@@ -173,8 +156,6 @@ def main():
         test_connections()
     elif args.list:
         list_published()
-    elif args.schedule:
-        run_schedule()
     else:
         run_once()
 
