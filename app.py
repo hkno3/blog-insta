@@ -299,35 +299,40 @@ def debug_instagram():
 
 @app.route("/api/test")
 def test_connections():
-    """API 연결 상태 확인"""
+    """API 연결 상태 확인 (병렬 실행)"""
+    from concurrent.futures import ThreadPoolExecutor
     load_dotenv(override=True)
+
+    def test_wordpress():
+        try:
+            import wordpress_client as wp
+            posts = wp.get_recent_posts(count=1)
+            return "wordpress", {"ok": True, "msg": f"연결 성공 ({len(posts)}개 글 확인)"}
+        except Exception as e:
+            return "wordpress", {"ok": False, "msg": str(e)}
+
+    def test_instagram():
+        try:
+            import instagram_client as ig
+            info = ig.get_account_info()
+            return "instagram", {"ok": True, "msg": f"연결 성공 (@{info.get('username', '?')})"}
+        except Exception as e:
+            return "instagram", {"ok": False, "msg": str(e)}
+
+    def test_gemini():
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+            model = genai.GenerativeModel("gemini-2.5-flash")
+            model.generate_content("hi")
+            return "gemini", {"ok": True, "msg": "연결 성공 (gemini-2.5-flash)"}
+        except Exception as e:
+            return "gemini", {"ok": False, "msg": str(e)}
+
     results = {}
-
-    # WordPress
-    try:
-        import wordpress_client as wp
-        posts = wp.get_recent_posts(count=1)
-        results["wordpress"] = {"ok": True, "msg": f"연결 성공 ({len(posts)}개 글 확인)"}
-    except Exception as e:
-        results["wordpress"] = {"ok": False, "msg": str(e)}
-
-    # Instagram
-    try:
-        import instagram_client as ig
-        info = ig.get_account_info()
-        results["instagram"] = {"ok": True, "msg": f"연결 성공 (@{info.get('username', '?')})"}
-    except Exception as e:
-        results["instagram"] = {"ok": False, "msg": str(e)}
-
-    # Gemini API
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        model.generate_content("hi")
-        results["gemini"] = {"ok": True, "msg": "연결 성공 (gemini-2.5-flash)"}
-    except Exception as e:
-        results["gemini"] = {"ok": False, "msg": str(e)}
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        for key, result in executor.map(lambda f: f(), [test_wordpress, test_instagram, test_gemini]):
+            results[key] = result
 
     return jsonify(results)
 
