@@ -113,16 +113,13 @@ def mark_published_url(url: str, instagram_media_id: str, post_title: str) -> No
 
 def is_failed_url(url: str) -> bool:
     """해당 URL이 실패로 기록됐는지 확인합니다.
-    429 실패는 오늘만 스킵하고 다음 날 재시도합니다."""
+    모든 실패는 오늘 실패한 경우만 스킵하고, 다음 날 재시도합니다."""
     entry = _load_failed().get(url)
     if entry is None:
         return False
-    reason = entry.get("reason", "")
-    if "429" in reason or "RESOURCE_EXHAUSTED" in reason:
-        failed_date = entry.get("failed_at", "")[:10]
-        today = datetime.now().strftime("%Y-%m-%d")
-        return failed_date == today
-    return True
+    failed_date = entry.get("failed_at", "")[:10]
+    today = datetime.now().strftime("%Y-%m-%d")
+    return failed_date == today
 
 
 def mark_failed_url(url: str, post_title: str, reason: str) -> None:
