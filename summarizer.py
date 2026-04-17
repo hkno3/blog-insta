@@ -85,6 +85,11 @@ def generate_instagram_caption(post: dict) -> str:
                     import time as _time
                     _time.sleep(wait + 1)
                     continue
+            elif "503" in err_str or "UNAVAILABLE" in err_str:
+                if attempt < max_retries - 1:
+                    import time as _time
+                    _time.sleep(10 * (attempt + 1))  # 10s, 20s
+                    continue
             raise
     output = response.text.strip()
 

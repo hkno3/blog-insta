@@ -153,6 +153,9 @@ def run_once_from_sheets() -> None:
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 log.warning(f"Gemini API 한도 초과 - 다음 실행에 재시도: {url}")
                 break
+            if "503" in err_str or "UNAVAILABLE" in err_str:
+                log.warning(f"Gemini API 일시적 오류 - 다음 실행에 재시도: {url}")
+                break
             log.error(f"캡션 생성 실패 - 스킵: {e}")
             tracker.mark_failed_url(url, post["title"], f"캡션 생성 실패: {e}")
             continue
