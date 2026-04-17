@@ -360,9 +360,12 @@ function clearLog() {
 // ─── 연결 테스트 ───
 async function testConnections() {
   const box = document.getElementById('conn-status');
-  box.innerHTML = '<div class="empty"><div class="spinner" style="margin:auto;"></div></div>';
+  box.innerHTML = '<div class="empty" style="display:flex;align-items:center;gap:8px;justify-content:center;"><div class="spinner"></div> 연결 테스트 중...</div>';
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45000);
   try {
-    const res = await fetch('/api/test');
+    const res = await fetch('/api/test', { signal: controller.signal });
+    clearTimeout(timer);
     const data = await res.json();
     const names = { wordpress: 'WordPress', instagram: 'Instagram', gemini: 'Gemini AI' };
     box.innerHTML = Object.entries(data).map(([k, v]) => `
@@ -375,7 +378,12 @@ async function testConnections() {
       </div>
     `).join('');
   } catch (e) {
-    box.innerHTML = '<div class="empty">테스트 실패</div>';
+    clearTimeout(timer);
+    if (e.name === 'AbortError') {
+      box.innerHTML = '<div class="empty">연결 테스트 시간 초과 (45초)</div>';
+    } else {
+      box.innerHTML = '<div class="empty">테스트 실패</div>';
+    }
   }
 }
 
