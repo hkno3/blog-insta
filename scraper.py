@@ -4,6 +4,7 @@ URL에 접속해서 제목, 본문, 대표 이미지(og:image)를 추출합니�
 import io
 import logging
 import requests
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from PIL import Image
 
@@ -16,6 +17,64 @@ _HEADERS = {
         "Chrome/120.0.0.0 Safari/537.36"
     )
 }
+
+
+def _get_wp_jpeg_url(page_url: str) -> str | None:
+    """
+    WordPress REST API로 포스트의 원본 JPEG 이미지 URL을 가져옵니다.
+    og:image가 WebP여도 업로드 원본이 JPEG인 경우 JPEG URL을 반환합니다.
+    """
+    parsed = urlparse(page_url)
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    slug = parsed.path.strip("/").split("/")[-1]
+    if not slug:
+        return None
+
+    try:
+        r = requests.get(
+            f"{base}/wp-json/wp/v2/posts",
+            params={"slug": slug, "_fields": "featured_media"},
+            headers=_HEADERS,
+            timeout=15,
+        )
+        if r.status_code != 200:
+            return None
+        posts = r.json()
+        if not posts or not isinstance(posts, list):
+            return None
+        media_id = posts[0].get("featured_media")
+        if not media_id:
+            return None
+    except Exception as e:
+        log.debug("WP REST posts 조회 실패: %s", e)
+        return None
+
+    try:
+        r = requests.get(
+            f"{base}/wp-json/wp/v2/media/{media_id}",
+            params={"_fields": "source_url,media_details"},
+            headers=_HEADERS,
+            timeout=15,
+        )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+    except Exception as e:
+        log.debug("WP REST media 조회 실패: %s", e)
+        return None
+
+    sizes = data.get("media_details", {}).get("sizes", {})
+    for size in ("large", "medium_large", "full"):
+        url = sizes.get(size, {}).get("source_url", "")
+        if url and not url.lower().split("?")[0].endswith(".webp"):
+            log.debug("WP REST JPEG URL 발견 (%s): %s", size, url)
+            return url
+
+    source = data.get("source_url", "")
+    if source and not source.lower().split("?")[0].endswith(".webp"):
+        return source
+
+    return None
 
 
 def _upload_jpeg(buf: io.BytesIO) -> str | None:
@@ -32,7 +91,6 @@ def _upload_jpeg(buf: io.BytesIO) -> str | None:
         )
         url = r.text.strip()
         if r.status_code == 200 and url.startswith("https://"):
-            log.debug("catbox.moe 업로드 성공: %s", url)
             return url
     except Exception as e:
         log.debug("catbox.moe 실패: %s", e)
@@ -47,7 +105,6 @@ def _upload_jpeg(buf: io.BytesIO) -> str | None:
         )
         url = r.text.strip()
         if r.status_code == 200 and url.startswith("https://"):
-            log.debug("0x0.st 업로드 성공: %s", url)
             return url
     except Exception as e:
         log.debug("0x0.st 실패: %s", e)
@@ -63,7 +120,6 @@ def _upload_jpeg(buf: io.BytesIO) -> str | None:
         )
         url = r.text.strip()
         if r.status_code == 200 and url.startswith("https://"):
-            log.debug("litterbox 업로드 성공: %s", url)
             return url
     except Exception as e:
         log.debug("litterbox 실패: %s", e)
@@ -71,17 +127,17 @@ def _upload_jpeg(buf: io.BytesIO) -> str | None:
     return None
 
 
-def _to_jpeg_url(image_url: str) -> str | None:
+def _to_jpeg_url(image_url: str, page_url: str | None = None) -> str | None:
     """
     WebP 이미지를 Instagram이 지원하는 JPEG URL로 변환합니다.
-    1. 쿼리 파라미터 제거 후 .webp 여부 확인
-    2. .jpg / .jpeg 버전 URL 시도
-    3. WebP 다운로드 → JPEG 변환 → 외부 호스팅 업로드 (3개 서비스 순차 시도)
+    1. .jpg / .jpeg 버전 URL 직접 시도
+    2. WordPress REST API로 원본 JPEG URL 조회
+    3. WebP 다운로드 → JPEG 변환 → 외부 호스팅 (3개 서비스 순차 시도)
     변환 불가 시 None 반환
     """
-    base = image_url.split("?")[0]  # 쿼리 파라미터 제거해서 확장자 확인
+    base = image_url.split("?")[0]
     if not base.lower().endswith(".webp"):
-        return image_url  # WebP 아니면 그대로 반환
+        return image_url
 
     # 1단계: .jpg / .jpeg 버전 URL 시도
     for ext in (".jpg", ".jpeg"):
@@ -94,7 +150,13 @@ def _to_jpeg_url(image_url: str) -> str | None:
         except Exception:
             pass
 
-    # 2단계: WebP 다운로드 → JPEG 변환 → 외부 호스트 업로드
+    # 2단계: WordPress REST API로 원본 JPEG 조회
+    if page_url:
+        jpeg_url = _get_wp_jpeg_url(page_url)
+        if jpeg_url:
+            return jpeg_url
+
+    # 3단계: WebP 다운로드 → JPEG 변환 → 외부 호스팅
     try:
         r = requests.get(image_url, headers=_HEADERS, timeout=20)
         r.raise_for_status()
@@ -135,7 +197,7 @@ def scrape_post(url: str) -> dict | None:
     else:
         title = ""
 
-    # 대표 이미지: og:image → twitter:image 순으로 탐색 후 WebP면 JPEG로 변환
+    # 대표 이미지: og:image → og:image:secure_url → twitter:image 순으로 탐색
     image_url = None
     for selector in [
         {"property": "og:image"},
@@ -148,7 +210,7 @@ def scrape_post(url: str) -> dict | None:
             break
 
     if image_url:
-        image_url = _to_jpeg_url(image_url)
+        image_url = _to_jpeg_url(image_url, page_url=url)
         if image_url:
             log.debug("최종 이미지 URL: %s", image_url)
 
