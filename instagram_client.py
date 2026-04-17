@@ -24,6 +24,7 @@ def _api(method: str, endpoint: str, **kwargs) -> dict:
     params = kwargs.pop("params", {})
     params["access_token"] = access_token
     resp = getattr(requests, method)(url, params=params, timeout=30, **kwargs)
+    resp.raise_for_status()
     data = resp.json()
     if "error" in data:
         raise RuntimeError(f"Instagram API 오류: {data['error']['message']}")
