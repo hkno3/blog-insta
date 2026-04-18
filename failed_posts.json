@@ -446,13 +446,13 @@
   },
   "https://bodyandwell.com/%ec%b0%b8%ec%a7%84%eb%93%9c%ea%b8%b0-%eb%ac%bc%eb%a6%b0-%ec%9e%90%ea%b5%ad-%eb%b0%9c%ea%b2%ac-%ec%8b%9c-%ec%a0%88%eb%8c%80%eb%a1%9c-%ec%a7%81%ec%a0%91-%eb%bd%91%ec%a7%80-%eb%a7%88%ec%84%b8%ec%9a%94/": {
     "title": "참진드기 물린 자국 발견 시 절대로 직접 뽑지 마세요",
-    "failed_at": "2026-04-14T02:40:32.592267",
-    "reason": "JPEG 이미지 없음"
+    "failed_at": "2026-04-18T18:54:10.665027",
+    "reason": "Instagram API 오류: 400 Client Error: Bad Request for url: https://graph.instagram.com/v21.0/17841454630602264/media_publish?access_token=IGAHn4fpWzzAxBZAGJXQkpxT05COTJmSGtzNTVPaWY2TFctSHJUTmx0QzBITDFFVklWdUFnWl93N2pxaV9YZAkExZAEEyaV9KeFgybk9sbW1DamdULUd0SzBWVmZAfMFVNQ2hxemw5V0dISUNZAdUU0b0ZA5eW1kb1ltYk1UNDV2RWRnTQZDZD"
   },
   "https://bodyandwell.com/sfts-%ec%a6%9d%ec%83%81-%ec%9e%a0%eb%b3%b5%ea%b8%b0-%ed%99%95%ec%9d%b8%ed%95%98%ea%b3%a0-%ec%b9%98%eb%aa%85%eb%a5%a0-18-%ec%9c%84%ed%97%98-%ec%98%88%eb%b0%a9%ed%95%98%ec%84%b8%ec%9a%94/": {
     "title": "SFTS 증상 잠복기 확인하고 치명률 18% 위험 예방하세요",
-    "failed_at": "2026-04-14T02:40:36.143021",
-    "reason": "JPEG 이미지 없음"
+    "failed_at": "2026-04-18T18:54:51.663262",
+    "reason": "Instagram API 오류: 400 Client Error: Bad Request for url: https://graph.instagram.com/v21.0/17841454630602264/media_publish?access_token=IGAHn4fpWzzAxBZAGJXQkpxT05COTJmSGtzNTVPaWY2TFctSHJUTmx0QzBITDFFVklWdUFnWl93N2pxaV9YZAkExZAEEyaV9KeFgybk9sbW1DamdULUd0SzBWVmZAfMFVNQ2hxemw5V0dISUNZAdUU0b0ZA5eW1kb1ltYk1UNDV2RWRnTQZDZD"
   },
   "https://bodyandwell.com/%eb%88%88%eb%b3%91-%ec%a0%84%ec%97%bc-%ec%98%88%eb%b0%a9%eb%b2%95-%ed%95%98%eb%82%98%eb%a1%9c-%ea%b0%80%ec%a1%b1-%ea%b1%b4%ea%b0%95-%ec%a7%80%ed%82%a4%eb%8a%94-%eb%8b%a8%ea%b3%84%eb%b3%84-%ea%b0%80/": {
     "title": "눈병 전염 예방법 하나로 가족 건강 지키는 단계별 가이드",
