@@ -731,7 +731,17 @@
   },
   "https://bodyandwell.com/%eb%a7%9d%eb%a7%89-%ec%a0%95%eb%a7%a5-%ed%8f%90%ec%87%84-%ec%a3%bc%ec%82%ac-%ec%b9%98%eb%a3%8c-%eb%b9%84%ec%9a%a9-%ec%97%b0%ea%b0%84-200%eb%a7%8c%ec%9b%90-%ec%95%84%eb%81%bc%eb%8a%94-%ed%99%98/": {
     "title": "망막 정맥 폐쇄 주사 치료 비용 연간 200만원 아끼는 환급 가이드",
-    "failed_at": "2026-04-29T22:00:40.254936",
+    "failed_at": "2026-04-30T10:56:56.020888",
     "reason": "JPEG 이미지 없음"
+  },
+  "https://bodyandwell.com/%ec%99%b8%eb%a6%bc%ed%94%84%eb%88%84%ea%b3%b5-%ec%a6%9d%ec%83%81-%ec%b2%b4%ed%81%ac%ed%95%98%ea%b3%a0-%ea%b7%80-%ec%86%90%ec%83%81-100-%ec%98%88%eb%b0%a9%ed%95%98%ec%84%b8%ec%9a%94/": {
+    "title": "외림프누공 증상 체크하고 귀 손상 100% 예방하세요",
+    "failed_at": "2026-04-30T10:58:09.114431",
+    "reason": "Instagram API 오류: 400 Client Error: Bad Request for url: https://graph.instagram.com/v21.0/17841454630602264/media?access_token=IGAHn4fpWzzAxBZAGJXQkpxT05COTJmSGtzNTVPaWY2TFctSHJUTmx0QzBITDFFVklWdUFnWl93N2pxaV9YZAkExZAEEyaV9KeFgybk9sbW1DamdULUd0SzBWVmZAfMFVNQ2hxemw5V0dISUNZAdUU0b0ZA5eW1kb1ltYk1UNDV2RWRnTQZDZD"
+  },
+  "https://bodyandwell.com/%ed%86%b5%ed%92%8d%ec%97%90-%ed%95%b4%eb%a1%9c%ec%9a%b4-%ec%9d%8c%ec%8b%9d-%eb%a6%ac%ec%8a%a4%ed%8a%b8%ec%99%80-%eb%b3%91%ec%9b%90%eb%b9%84-%ec%95%84%eb%81%bc%eb%8a%94-7%ea%b0%80%ec%a7%80-%eb%b0%a9/": {
+    "title": "통풍에 해로운 음식 리스트와 병원비 아끼는 7가지 방법",
+    "failed_at": "2026-04-30T10:58:30.404032",
+    "reason": "Instagram API 오류: 400 Client Error: Bad Request for url: https://graph.instagram.com/v21.0/17841454630602264/media?access_token=IGAHn4fpWzzAxBZAGJXQkpxT05COTJmSGtzNTVPaWY2TFctSHJUTmx0QzBITDFFVklWdUFnWl93N2pxaV9YZAkExZAEEyaV9KeFgybk9sbW1DamdULUd0SzBWVmZAfMFVNQ2hxemw5V0dISUNZAdUU0b0ZA5eW1kb1ltYk1UNDV2RWRnTQZDZD"
   }
 }
