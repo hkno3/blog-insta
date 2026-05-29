@@ -23,6 +23,7 @@ import instagram_client as ig
 from summarizer import generate_instagram_caption
 import sheets_client
 from scraper import scrape_post
+from refresh_token import refresh_if_needed
 
 load_dotenv()
 
@@ -234,6 +235,7 @@ def main():
     elif args.list:
         list_published()
     else:
+        refresh_if_needed()
         run_once_from_sheets()
 
 
