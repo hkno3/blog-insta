@@ -116,17 +116,14 @@ def get_account_info() -> dict:
 
 def refresh_access_token() -> dict:
     """
-    Long-lived token을 갱신합니다. (만료 30일 전부터 갱신 가능)
+    Long-lived token을 갱신합니다.
     갱신된 토큰 정보를 반환합니다.
     """
     data = _api(
         "get",
-        "oauth/access_token",
+        "refresh_access_token",
         params={
-            "grant_type": "fb_exchange_token",
-            "client_id": os.getenv("META_APP_ID", ""),
-            "client_secret": os.getenv("META_APP_SECRET", ""),
-            "fb_exchange_token": os.getenv("INSTAGRAM_ACCESS_TOKEN", ""),
+            "grant_type": "ig_refresh_token",
         },
     )
     return data
