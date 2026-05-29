@@ -991,8 +991,8 @@
   },
   "https://bodyandwell.com/%ed%8a%b8%eb%a3%a8%ec%97%94%ec%98%a4%ec%97%a0%eb%b9%84-%eb%aa%a8%eb%a5%b4%ea%b3%a0-%ec%98%81%ec%96%91%ec%a0%9c-5%ea%b0%9c-%eb%a8%b9%eb%8b%a4%ea%b0%80-3%ea%b0%9c%ec%9b%94-%eb%82%ad%eb%b9%84%ed%96%88/": {
     "title": "트루엔오엠비 모르고 영양제 5개 먹다가 3개월 낭비했습니다",
-    "failed_at": "2026-05-28T15:59:32.681912",
-    "reason": "Instagram API 오류: 400 Client Error: Bad Request for url: https://graph.instagram.com/v21.0/17841454630602264/media?access_token=IGAHn4fpWzzAxBZAGJXQkpxT05COTJmSGtzNTVPaWY2TFctSHJUTmx0QzBITDFFVklWdUFnWl93N2pxaV9YZAkExZAEEyaV9KeFgybk9sbW1DamdULUd0SzBWVmZAfMFVNQ2hxemw5V0dISUNZAdUU0b0ZA5eW1kb1ltYk1UNDV2RWRnTQZDZD"
+    "failed_at": "2026-05-29T03:42:33.559430",
+    "reason": "Instagram API 오류: Instagram API 오류 (HTTP 400, 코드 190, OAuthException): Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
   },
   "https://bodyandwell.com/%ec%91%a5-%ed%9a%a8%eb%8a%a5-%eb%aa%a8%eb%a5%b4%ea%b3%a0-%eb%a8%b9%ec%9c%bc%eb%a9%b4-%eb%86%93%ec%b9%98%eb%8a%94-7%ea%b0%80%ec%a7%80-%ea%b1%b4%ea%b0%95-%ed%9a%a8%ea%b3%bc/": {
     "title": "쑥 효능 모르고 먹으면 놓치는 7가지 건강 효과",
