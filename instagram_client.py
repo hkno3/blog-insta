@@ -24,7 +24,18 @@ def _api(method: str, endpoint: str, **kwargs) -> dict:
     params = kwargs.pop("params", {})
     params["access_token"] = access_token
     resp = getattr(requests, method)(url, params=params, timeout=30, **kwargs)
-    resp.raise_for_status()
+    if not resp.ok:
+        try:
+            err_data = resp.json()
+            if "error" in err_data:
+                err = err_data["error"]
+                code = err.get("code", "?")
+                msg = err.get("message", "?")
+                etype = err.get("type", "?")
+                raise RuntimeError(f"Instagram API 오류 (HTTP {resp.status_code}, 코드 {code}, {etype}): {msg}")
+        except (ValueError, KeyError):
+            pass
+        resp.raise_for_status()
     data = resp.json()
     if "error" in data:
         raise RuntimeError(f"Instagram API 오류: {data['error']['message']}")
