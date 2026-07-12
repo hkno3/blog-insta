@@ -40,6 +40,7 @@ jobs:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
           GH_PAT: ${{ secrets.GH_PAT }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
         run: python main.py
 
       - name: 게시 이력 저장
