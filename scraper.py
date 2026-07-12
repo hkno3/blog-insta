@@ -1,8 +1,10 @@
 """
 URL에 접속해서 제목, 본문, 대표 이미지(og:image)를 추출합니다.
 """
+import base64
 import io
 import logging
+import os
 import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
@@ -78,51 +80,26 @@ def _get_wp_jpeg_url(page_url: str) -> str | None:
 
 
 def _upload_jpeg(buf: io.BytesIO) -> str | None:
-    """변환된 JPEG를 여러 무료 호스트에 순차 업로드, 성공한 URL 반환."""
+    """변환된 JPEG를 imgbb에 업로드, 성공한 URL 반환."""
+    api_key = os.getenv("IMGBB_API_KEY", "").strip()
+    if not api_key:
+        log.warning("IMGBB_API_KEY 없음")
+        return None
 
-    # 1) catbox.moe
     buf.seek(0)
     try:
+        encoded = base64.b64encode(buf.read()).decode("utf-8")
         r = requests.post(
-            "https://catbox.moe/user/api.php",
-            data={"reqtype": "fileupload"},
-            files={"fileToUpload": ("image.jpg", buf, "image/jpeg")},
-            timeout=20,
+            "https://api.imgbb.com/1/upload",
+            data={"key": api_key, "image": encoded},
+            timeout=30,
         )
-        url = r.text.strip()
-        if r.status_code == 200 and url.startswith("https://"):
-            return url
+        data = r.json()
+        if r.status_code == 200 and data.get("success"):
+            return data["data"]["url"]
+        log.warning("imgbb 업로드 실패: %s", data.get("error", {}).get("message", ""))
     except Exception as e:
-        log.debug("catbox.moe 실패: %s", e)
-
-    # 2) 0x0.st
-    buf.seek(0)
-    try:
-        r = requests.post(
-            "https://0x0.st",
-            files={"file": ("image.jpg", buf, "image/jpeg")},
-            timeout=20,
-        )
-        url = r.text.strip()
-        if r.status_code == 200 and url.startswith("https://"):
-            return url
-    except Exception as e:
-        log.debug("0x0.st 실패: %s", e)
-
-    # 3) litterbox.catbox.moe (72시간 임시)
-    buf.seek(0)
-    try:
-        r = requests.post(
-            "https://litterbox.catbox.moe/resources/internals/api.php",
-            data={"reqtype": "fileupload", "time": "72h"},
-            files={"fileToUpload": ("image.jpg", buf, "image/jpeg")},
-            timeout=20,
-        )
-        url = r.text.strip()
-        if r.status_code == 200 and url.startswith("https://"):
-            return url
-    except Exception as e:
-        log.debug("litterbox 실패: %s", e)
+        log.warning("imgbb 업로드 실패: %s", e)
 
     return None
 
@@ -132,7 +109,7 @@ def _to_jpeg_url(image_url: str, page_url: str | None = None) -> str | None:
     WebP 이미지를 Instagram이 지원하는 JPEG URL로 변환합니다.
     1. .jpg / .jpeg 버전 URL 직접 시도
     2. WordPress REST API로 원본 JPEG URL 조회
-    3. WebP 다운로드 → JPEG 변환 → 외부 호스팅 (3개 서비스 순차 시도)
+    3. WebP 다운로드 → JPEG 변환 → imgbb 업로드
     변환 불가 시 None 반환
     """
     base = image_url.split("?")[0]
@@ -156,7 +133,7 @@ def _to_jpeg_url(image_url: str, page_url: str | None = None) -> str | None:
         if jpeg_url:
             return jpeg_url
 
-    # 3단계: WebP 다운로드 → JPEG 변환 → 외부 호스팅
+    # 3단계: WebP 다운로드 → JPEG 변환 → imgbb 업로드
     try:
         r = requests.get(image_url, headers=_HEADERS, timeout=20)
         r.raise_for_status()
@@ -166,7 +143,7 @@ def _to_jpeg_url(image_url: str, page_url: str | None = None) -> str | None:
         result = _upload_jpeg(buf)
         if result:
             return result
-        log.warning("모든 이미지 호스팅 서비스 업로드 실패: %s", image_url)
+        log.warning("imgbb 업로드 실패: %s", image_url)
     except Exception as e:
         log.warning("WebP 변환 실패: %s", e)
 
