@@ -45,9 +45,9 @@
     "reason": "캡션 생성 실패: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
   },
   "https://bodyandwell.com/%ec%9d%b8%ec%8a%90%eb%a6%b0-%ec%a0%80%ed%95%ad%ec%84%b1-%ec%a6%9d%ec%83%81-%eb%82%98%eb%a7%8c-%eb%aa%b0%eb%9e%90%eb%8d%98-5%ea%b0%80%ec%a7%80-%ec%8b%a0%ed%98%b8/": {
-    "title": "https://bodyandwell.com/%ec%9d%b8%ec%8a%90%eb%a6%b0-%ec%a0%80%ed%95%ad%ec%84%b1-%ec%a6%9d%ec%83%81-%eb%82%98%eb%a7%8c-%eb%aa%b0%eb%9e%90%eb%8d%98-5%ea%b0%80%ec%a7%80-%ec%8b%a0%ed%98%b8/",
-    "failed_at": "2026-07-15T02:30:42.648326",
-    "reason": "스크래핑 실패: 페이지 접속 실패: 502 Server Error: Bad Gateway for url: https://bodyandwell.com/%EC%9D%B8%EC%8A%90%EB%A6%B0-%EC%A0%80%ED%95%AD%EC%84%B1-%EC%A6%9D%EC%83%81-%EB%82%98%EB%A7%8C-%EB%AA%B0%EB%9E%90%EB%8D%98-5%EA%B0%80%EC%A7%80-%EC%8B%A0%ED%98%B8/"
+    "title": "인슐린 저항성 증상 나만 몰랐던 5가지 신호",
+    "failed_at": "2026-07-16T02:39:13.010428",
+    "reason": "Instagram API 오류: Instagram API 오류 (HTTP 400, 코드 9004, OAuthException): Only photo or video can be accepted as media type."
   },
   "https://bodyandwell.com/%ec%9e%84%ec%8b%a0-%ea%b7%b9%ec%b4%88%ea%b8%b0%ec%a6%9d%ec%83%81-%ec%8b%9c%ea%b8%b0%eb%b3%84-%ed%8a%b9%ec%a7%95-3%ea%b0%80%ec%a7%80-%ec%a0%95%eb%a6%ac/": {
     "title": "임신 극초기증상 시기별 특징 3가지 정리",
@@ -91,13 +91,13 @@
   },
   "https://bodyandwell.com/%eb%be%b0%eb%a3%a8%ec%a7%80-%ed%8c%a8%ec%b9%98-%ed%9a%a8%ea%b3%bc-%ec%a0%9c%eb%8c%80%eb%a1%9c-%eb%b3%b4%eb%8a%94-%ec%82%ac%ec%9a%a9-%ed%8c%81-7%ea%b0%80%ec%a7%80/": {
     "title": "뾰루지 패치 효과 제대로 보는 사용 팁 7가지",
-    "failed_at": "2026-04-09T02:28:42.575403",
-    "reason": "JPEG 이미지 없음"
+    "failed_at": "2026-07-16T02:39:35.044776",
+    "reason": "Instagram API 오류: Instagram API 오류 (HTTP 400, 코드 9004, OAuthException): Only photo or video can be accepted as media type."
   },
   "https://bodyandwell.com/%ec%9a%95%ec%8b%a4-%ec%88%98%ec%a0%84-%eb%ac%bc%eb%95%8c-%ec%a0%9c%ea%b1%b0-%eb%b0%a9%eb%b2%95-%eb%9d%bd%ec%8a%a4-%ec%97%86%ec%9d%b4-%eb%a0%88%eb%aa%ac-%ed%95%98%eb%82%98%eb%a1%9c-%ea%b4%91%eb%82%b4/": {
     "title": "욕실 수전 물때 제거 방법 락스 없이 레몬 하나로 광내기",
-    "failed_at": "2026-04-09T05:10:49.881002",
-    "reason": "JPEG 이미지 없음"
+    "failed_at": "2026-07-16T02:39:55.474501",
+    "reason": "Instagram API 오류: Instagram API 오류 (HTTP 400, 코드 9004, OAuthException): Only photo or video can be accepted as media type."
   },
   "https://bodyandwell.com/%eb%8b%a8%eb%b0%b1%ec%a7%88-%eb%b3%b4%ec%b6%a9%ec%a0%9c-%ec%b6%94%ec%b2%9c-%ea%b2%b0%ec%a0%95-%ec%9e%a5%ec%95%a0-%eb%81%9d%eb%82%b4%eb%8a%94-%ea%b0%80%ec%84%b1%eb%b9%84-3%ec%a2%85-%ec%99%84%eb%b2%bd/": {
     "title": "단백질 보충제 추천 결정 장애 끝내는 가성비 3종 완벽 비교",
