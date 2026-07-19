@@ -230,19 +230,19 @@
     "reason": "JPEG 이미지 없음"
   },
   "https://bodyandwell.com/%ea%b0%81%eb%a7%89%ea%b0%95%ed%99%94%ec%88%a0-%ed%9b%84-%ec%84%b8%ec%95%88-5%eb%b6%84-%eb%a7%8c%ec%97%90-%eb%b0%b0%ec%9a%b0%eb%8a%94-%eb%8b%a8%ea%b3%84%eb%b3%84-%eb%b0%a9%eb%b2%95/": {
-    "title": "각막강화술 후 세안 5분 만에 배우는 단계별 방법",
-    "failed_at": "2026-04-10T18:56:24.280210",
-    "reason": "캡션 생성 실패: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+    "title": "https://bodyandwell.com/%ea%b0%81%eb%a7%89%ea%b0%95%ed%99%94%ec%88%a0-%ed%9b%84-%ec%84%b8%ec%95%88-5%eb%b6%84-%eb%a7%8c%ec%97%90-%eb%b0%b0%ec%9a%b0%eb%8a%94-%eb%8b%a8%ea%b3%84%eb%b3%84-%eb%b0%a9%eb%b2%95/",
+    "failed_at": "2026-07-19T15:58:52.670896",
+    "reason": "스크래핑 실패: 페이지 접속 실패: 522 Server Error: <none> for url: https://bodyandwell.com/%EA%B0%81%EB%A7%89%EA%B0%95%ED%99%94%EC%88%A0-%ED%9B%84-%EC%84%B8%EC%95%88-5%EB%B6%84-%EB%A7%8C%EC%97%90-%EB%B0%B0%EC%9A%B0%EB%8A%94-%EB%8B%A8%EA%B3%84%EB%B3%84-%EB%B0%A9%EB%B2%95/"
   },
   "https://bodyandwell.com/%ea%b2%80%ec%a0%95-%ed%86%a0%eb%a7%88%ed%86%a0-%ed%9a%a8%eb%8a%a5-%eb%a8%b9%eb%8a%94%eb%b2%95-%ec%9e%98-%eb%aa%a8%eb%a5%b4%eb%8a%94-%ed%9d%91%ed%86%a0%eb%a7%88%ed%86%a0%ec%9d%98-%ec%b0%a8%ec%9d%b4/": {
-    "title": "검정 토마토 효능 먹는법 잘 모르는 흑토마토의 차이점",
-    "failed_at": "2026-04-10T18:56:29.862948",
-    "reason": "캡션 생성 실패: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+    "title": "https://bodyandwell.com/%ea%b2%80%ec%a0%95-%ed%86%a0%eb%a7%88%ed%86%a0-%ed%9a%a8%eb%8a%a5-%eb%a8%b9%eb%8a%94%eb%b2%95-%ec%9e%98-%eb%aa%a8%eb%a5%b4%eb%8a%94-%ed%9d%91%ed%86%a0%eb%a7%88%ed%86%a0%ec%9d%98-%ec%b0%a8%ec%9d%b4/",
+    "failed_at": "2026-07-19T15:59:12.182402",
+    "reason": "스크래핑 실패: 페이지 접속 실패: 522 Server Error: <none> for url: https://bodyandwell.com/%EA%B2%80%EC%A0%95-%ED%86%A0%EB%A7%88%ED%86%A0-%ED%9A%A8%EB%8A%A5-%EB%A8%B9%EB%8A%94%EB%B2%95-%EC%9E%98-%EB%AA%A8%EB%A5%B4%EB%8A%94-%ED%9D%91%ED%86%A0%EB%A7%88%ED%86%A0%EC%9D%98-%EC%B0%A8%EC%9D%B4/"
   },
   "https://bodyandwell.com/%ea%b2%bd%ea%b5%ac%ec%9a%a9-%eb%b9%84%eb%a7%8c%ec%b9%98%eb%a3%8c%ec%a0%9c-%eb%b6%80%ec%9e%91%ec%9a%a9-%eb%af%b8%eb%a6%ac-%ec%b2%b4%ed%81%ac%ed%95%98%eb%8a%94-%ea%b0%80%ec%9d%b4%eb%93%9c/": {
-    "title": "경구용 비만치료제 부작용 미리 체크하는 가이드",
-    "failed_at": "2026-04-10T18:56:36.455377",
-    "reason": "캡션 생성 실패: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+    "title": "https://bodyandwell.com/%ea%b2%bd%ea%b5%ac%ec%9a%a9-%eb%b9%84%eb%a7%8c%ec%b9%98%eb%a3%8c%ec%a0%9c-%eb%b6%80%ec%9e%91%ec%9a%a9-%eb%af%b8%eb%a6%ac-%ec%b2%b4%ed%81%ac%ed%95%98%eb%8a%94-%ea%b0%80%ec%9d%b4%eb%93%9c/",
+    "failed_at": "2026-07-19T15:59:31.879999",
+    "reason": "스크래핑 실패: 페이지 접속 실패: 522 Server Error: <none> for url: https://bodyandwell.com/%EA%B2%BD%EA%B5%AC%EC%9A%A9-%EB%B9%84%EB%A7%8C%EC%B9%98%EB%A3%8C%EC%A0%9C-%EB%B6%80%EC%9E%91%EC%9A%A9-%EB%AF%B8%EB%A6%AC-%EC%B2%B4%ED%81%AC%ED%95%98%EB%8A%94-%EA%B0%80%EC%9D%B4%EB%93%9C/"
   },
   "https://bodyandwell.com/%ea%b3%b5%eb%b3%b5-%eb%93%a4%ea%b8%b0%eb%a6%84-%eb%b6%80%ec%9e%91%ec%9a%a9-%eb%af%b8%eb%a6%ac-%ec%b2%b4%ed%81%ac%ed%95%98%eb%8a%94-3%ea%b0%80%ec%a7%80-%ec%a3%bc%ec%9d%98%ec%82%ac%ed%95%ad/": {
     "title": "공복 들기름 부작용 미리 체크하는 3가지 주의사항",
